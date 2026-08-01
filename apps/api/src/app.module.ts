@@ -26,6 +26,7 @@ import { MetricsModule } from './common/observability/metrics.module.js';
 import { MetricsInterceptor } from './common/observability/metrics.interceptor.js';
 import { CsrfGuard } from './common/security/csrf.guard.js';
 import { RateLimitGuard } from './common/security/rate-limit.guard.js';
+import { SessionOriginGuard } from './common/security/session-origin.guard.js';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { RateLimitGuard } from './common/security/rate-limit.guard.js';
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: SessionOriginGuard },
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
     { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },

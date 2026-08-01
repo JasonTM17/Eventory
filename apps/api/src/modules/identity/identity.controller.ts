@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { CurrentUser, Public, RateLimit } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
+import { SessionIssuance } from '../../common/security/session-issuance.decorator.js';
 import { IdentityService } from './identity.service.js';
 import { LoginDto, RegisterDto } from './identity.dto.js';
 
@@ -11,6 +12,7 @@ export class IdentityController {
 
   @Public()
   @RateLimit(10)
+  @SessionIssuance()
   @Post('register')
   register(
     @Body() body: RegisterDto,
@@ -22,6 +24,7 @@ export class IdentityController {
 
   @Public()
   @RateLimit(10)
+  @SessionIssuance()
   @Post('login')
   login(
     @Body() body: LoginDto,
@@ -33,6 +36,7 @@ export class IdentityController {
 
   @Public()
   @RateLimit(30)
+  @SessionIssuance()
   @Post('refresh')
   refresh(
     @Req() request: Request,

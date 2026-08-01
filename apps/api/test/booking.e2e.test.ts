@@ -39,6 +39,7 @@ describe('booking and payment', { concurrency: false }, () => {
 
     const owner = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `booking-owner-${Date.now()}@example.com`,
         displayName: 'Booking Owner',
@@ -48,6 +49,7 @@ describe('booking and payment', { concurrency: false }, () => {
     const ownerCookie = cookiePair(owner.headers['set-cookie'], 'eventory_access');
     const attendee = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: attendeeEmail, displayName: 'Booking Attendee', password: 'StrongPassword9' })
       .expect(201);
     attendeeCookie = cookiePair(attendee.headers['set-cookie'], 'eventory_access');

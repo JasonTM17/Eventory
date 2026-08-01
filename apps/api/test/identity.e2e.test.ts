@@ -34,6 +34,7 @@ describe('identity endpoints', () => {
   it('registers a user, sets http-only sessions, and serves the current user', async () => {
     const register = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: email.toUpperCase(),
         displayName: 'Identity Test',
@@ -57,6 +58,7 @@ describe('identity endpoints', () => {
   it('rejects weak passwords without writing an account', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: `weak-${email}`, displayName: 'Weak Password', password: 'short' })
       .expect(400);
     assert.equal(response.body.code, 'WEAK_PASSWORD');
@@ -65,6 +67,7 @@ describe('identity endpoints', () => {
   it('returns a generic conflict for duplicate registration', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email, displayName: 'Duplicate', password: 'StrongPassword9' })
       .expect(409);
     assert.equal(response.body.code, 'REGISTRATION_CONFLICT');
@@ -74,6 +77,7 @@ describe('identity endpoints', () => {
   it('rotates refresh tokens and revokes a family on replay', async () => {
     const login = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
+      .set('Origin', 'http://localhost:3000')
       .send({ email, password: 'StrongPassword9' })
       .expect(201);
     const originalRefreshCookie = cookiePair(login.headers['set-cookie'], 'eventory_refresh');
@@ -81,6 +85,7 @@ describe('identity endpoints', () => {
     const refresh = await request(app.getHttpServer())
       .post('/api/v1/auth/refresh')
       .set('Cookie', originalRefreshCookie)
+      .set('Origin', 'http://localhost:3000')
       .expect(201);
     const rotatedRefreshCookie = cookiePair(refresh.headers['set-cookie'], 'eventory_refresh');
     assert.notEqual(rotatedRefreshCookie, originalRefreshCookie);
@@ -88,18 +93,21 @@ describe('identity endpoints', () => {
     const replay = await request(app.getHttpServer())
       .post('/api/v1/auth/refresh')
       .set('Cookie', originalRefreshCookie)
+      .set('Origin', 'http://localhost:3000')
       .expect(401);
     assert.equal(replay.body.code, 'REFRESH_TOKEN_REUSE');
 
     await request(app.getHttpServer())
       .post('/api/v1/auth/refresh')
       .set('Cookie', rotatedRefreshCookie)
+      .set('Origin', 'http://localhost:3000')
       .expect(401);
   });
 
   it('does not disclose whether login credentials are wrong', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
+      .set('Origin', 'http://localhost:3000')
       .send({ email, password: 'WrongPassword9' })
       .expect(401);
     assert.equal(response.body.code, 'INVALID_CREDENTIALS');

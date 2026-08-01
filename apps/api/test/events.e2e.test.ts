@@ -32,6 +32,7 @@ describe('event lifecycle and management', () => {
 
     const owner = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: ownerEmail, displayName: 'Event Owner', password: 'StrongPassword9' })
       .expect(201);
     ownerCookie = cookiePair(owner.headers['set-cookie'], 'eventory_access');
@@ -46,6 +47,7 @@ describe('event lifecycle and management', () => {
 
     const foreign = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: foreignEmail, displayName: 'Foreign Organizer', password: 'StrongPassword9' })
       .expect(201);
     foreignCookie = cookiePair(foreign.headers['set-cookie'], 'eventory_access');

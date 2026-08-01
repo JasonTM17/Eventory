@@ -23,6 +23,7 @@ export async function apiRequest<T>(
   const headers = new Headers(init.headers);
   if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
   if (cookieHeader) headers.set('cookie', cookieHeader);
+  if (typeof window === 'undefined') headers.set('x-eventory-client', 'server');
 
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,

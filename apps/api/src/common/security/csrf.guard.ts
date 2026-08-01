@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { getCorsOrigins } from '@eventory/config';
 import type { Request } from 'express';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../auth/auth.constants.js';
 import { getRequestCookie } from '../auth/cookie.util.js';
+import { createTrustedOrigins, isTrustedOrigin } from './origin-policy.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -12,11 +12,7 @@ export class CsrfGuard implements CanActivate {
   private readonly allowedOrigins: Set<string>;
 
   constructor(private readonly config: ConfigService) {
-    this.allowedOrigins = new Set(
-      getCorsOrigins(this.config.getOrThrow<string>('CORS_ORIGINS')).map((origin) =>
-        origin.replace(/\/$/, ''),
-      ),
-    );
+    this.allowedOrigins = createTrustedOrigins(this.config.getOrThrow<string>('CORS_ORIGINS'));
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -25,7 +21,7 @@ export class CsrfGuard implements CanActivate {
     if (!this.hasSessionCookie(request)) return true;
 
     const origin = request.header('origin');
-    if (!origin || this.allowedOrigins.has(origin.replace(/\/$/, ''))) return true;
+    if (!origin || isTrustedOrigin(origin, this.allowedOrigins)) return true;
 
     throw new ForbiddenException({
       code: 'CSRF_ORIGIN_DENIED',

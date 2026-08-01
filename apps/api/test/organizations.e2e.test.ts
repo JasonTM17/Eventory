@@ -30,6 +30,7 @@ describe('organization authorization', () => {
 
     const owner = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: ownerEmail, displayName: 'Owner', password: 'StrongPassword9' })
       .expect(201);
     ownerId = owner.body.user.id as string;
@@ -71,6 +72,7 @@ describe('organization authorization', () => {
 
     const foreign = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: foreignEmail, displayName: 'Foreign', password: 'StrongPassword9' })
       .expect(201);
     const foreignCookie = cookiePair(foreign.headers['set-cookie'], 'eventory_access');
@@ -88,6 +90,7 @@ describe('organization authorization', () => {
     });
     const foreignLogin = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
+      .set('Origin', 'http://localhost:3000')
       .send({ email: foreignEmail, password: 'StrongPassword9' })
       .expect(201);
     const foreignCookie = cookiePair(foreignLogin.headers['set-cookie'], 'eventory_access');

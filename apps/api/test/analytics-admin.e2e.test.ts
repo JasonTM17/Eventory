@@ -33,6 +33,7 @@ describe('analytics and administration', { concurrency: false }, () => {
 
     const admin = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `analytics-admin-${runId}@example.com`,
         displayName: 'Platform Admin',
@@ -44,6 +45,7 @@ describe('analytics and administration', { concurrency: false }, () => {
 
     const owner = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `analytics-owner-${runId}@example.com`,
         displayName: 'Analytics Owner',
@@ -54,6 +56,7 @@ describe('analytics and administration', { concurrency: false }, () => {
 
     const attendee = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `analytics-attendee-${runId}@example.com`,
         displayName: 'Analytics Attendee',

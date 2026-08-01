@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { URL } from 'node:url';
 
 const localSessionSecret = 'eventory-local-session-secret-change-me';
 const localQrSecret = 'eventory-local-qr-signing-secret-change-me';
@@ -60,8 +61,33 @@ export function parseEnvironment(input: Record<string, unknown> = process.env): 
 }
 
 export function getCorsOrigins(value: string): string[] {
-  return value
+  const configuredOrigins = value
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  if (configuredOrigins.length === 0) {
+    throw new Error('CORS_ORIGINS must contain at least one HTTP(S) origin');
+  }
+
+  return [...new Set(configuredOrigins.map(parseCorsOrigin))];
+}
+
+function parseCorsOrigin(value: string): string {
+  try {
+    const url = new URL(value);
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.pathname !== '/' ||
+      url.search ||
+      url.hash
+    ) {
+      throw new Error('not a serialized HTTP(S) origin');
+    }
+    return url.origin;
+  } catch {
+    throw new Error(`Invalid CORS origin: ${value}`);
+  }
 }

@@ -38,6 +38,7 @@ describe('tickets and organizer check-in', { concurrency: false }, () => {
 
     const owner = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `checkin-owner-${runId}@example.com`,
         displayName: 'Check-in Owner',
@@ -48,6 +49,7 @@ describe('tickets and organizer check-in', { concurrency: false }, () => {
 
     const attendee = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `checkin-attendee-${runId}@example.com`,
         displayName: 'Check-in Attendee',
@@ -59,6 +61,7 @@ describe('tickets and organizer check-in', { concurrency: false }, () => {
 
     const outsider = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
+      .set('Origin', 'http://localhost:3000')
       .send({
         email: `checkin-outsider-${runId}@example.com`,
         displayName: 'Check-in Outsider',
