@@ -11,6 +11,7 @@ import { RolesGuard } from './common/auth/roles.guard.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
 import { RedisModule } from './infrastructure/redis/redis.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
+import { OrganizationsModule } from './modules/organizations/organizations.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
@@ -35,6 +36,7 @@ import { HealthModule } from './modules/health/health.module.js';
     DatabaseModule,
     RedisModule,
     IdentityModule,
+    OrganizationsModule,
     HealthModule,
   ],
   providers: [
