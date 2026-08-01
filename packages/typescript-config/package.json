@@ -2,6 +2,10 @@
   "name": "@eventory/typescript-config",
   "version": "0.1.0",
   "private": true,
-  "files": ["base.json", "nextjs.json", "nestjs.json"],
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "nestjs.json"
+  ],
   "scripts": {}
 }

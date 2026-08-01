@@ -1,0 +1,38 @@
+# Dependencies and build output
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# Runtime files
+*.log
+*.pid
+tmp/
+temp/
+
+# Local infrastructure volumes and reports
+infrastructure/volumes/
+plans/**/reports/*.json
+
+# Editor/OS files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local agent/runtime configuration; project rules remain tracked at the root.
+.claude/
+.codex/
+AGENTS.md
+CLAUDE.md

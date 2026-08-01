@@ -1,0 +1,11 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+pnpm-lock.yaml
+plans/templates
+AGENTS.md
+CLAUDE.md
+.claude
+.codex
