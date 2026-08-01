@@ -9,6 +9,23 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  ATTENDEE
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
 model SystemMetadata {
   id        String   @id @default(uuid()) @db.Uuid
   key       String   @unique @db.VarChar(120)
@@ -17,4 +34,96 @@ model SystemMetadata {
   updatedAt DateTime @updatedAt
 
   @@map("system_metadata")
+}
+
+model User {
+  id                 String               @id @default(uuid()) @db.Uuid
+  email              String               @unique @db.VarChar(320)
+  displayName        String               @db.VarChar(120)
+  passwordHash       String               @db.VarChar(255)
+  role               UserRole             @default(ATTENDEE)
+  status             UserStatus           @default(ACTIVE)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  organizations      OrganizationMember[]
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]            @relation("AuditActor")
+  idempotencyRecords IdempotencyRecord[]
+
+  @@index([status, createdAt])
+  @@map("users")
+}
+
+model Organization {
+  id        String               @id @default(uuid()) @db.Uuid
+  name      String               @db.VarChar(160)
+  slug      String               @unique @db.VarChar(180)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  members   OrganizationMember[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String                   @id @default(uuid()) @db.Uuid
+  organizationId String                   @db.Uuid
+  userId         String                   @db.Uuid
+  role           OrganizationMemberRole   @default(STAFF)
+  createdAt      DateTime                 @default(now())
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId, role])
+  @@map("organization_members")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique @db.VarChar(128)
+  familyId   String    @db.Uuid
+  expiresAt  DateTime
+  usedAt     DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([familyId, revokedAt])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id           String    @id @default(uuid()) @db.Uuid
+  actorUserId  String?   @db.Uuid
+  action       String    @db.VarChar(120)
+  resourceType String    @db.VarChar(80)
+  resourceId   String?   @db.Uuid
+  metadata     Json
+  ipAddress    String?   @db.VarChar(64)
+  createdAt    DateTime  @default(now())
+  actor        User?     @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([resourceType, resourceId, createdAt])
+  @@map("audit_logs")
+}
+
+model IdempotencyRecord {
+  id             String    @id @default(uuid()) @db.Uuid
+  scope          String    @db.VarChar(120)
+  key            String    @db.VarChar(255)
+  userId         String?   @db.Uuid
+  responseStatus Int
+  responseBody   Json
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([scope, key])
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("idempotency_records")
 }
