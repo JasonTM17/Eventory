@@ -16,8 +16,11 @@ Eventory uses an editorial, high-contrast visual language: warm paper surfaces, 
 ## Interaction rules
 
 - Every interactive control has a visible `:focus-visible` treatment and a minimum 44px touch target.
+- Navigation actions use their native semantics: links navigate and buttons submit or change local state. Never nest a native button inside a link.
+- The public header keeps a native, keyboard-operable disclosure menu below 800px; a skip link targets the main landmark before the header's links.
 - Forms use native labels, browser input types, and server/API errors in an alert region; validation in the browser is convenience only.
 - Loading, empty, forbidden, and unavailable states keep the surrounding layout stable and explain a recovery action.
+- Empty discovery and an unavailable discovery service are separate states. The copy must not imply that an outage means there are no events.
 - The API remains the authorization boundary. Hiding a link or route in the web app never grants access.
 - Responsive layouts collapse to one column at 800px, preserve reading order, and never require horizontal scrolling.
 
@@ -29,4 +32,4 @@ Eventory uses an editorial, high-contrast visual language: warm paper surfaces, 
 
 ## Component boundaries
 
-The shared `@eventory/ui` package contains presentation primitives (`Button`, `Card`, `Field`, `StatusBadge`, and `Container`). Route components own domain composition. Client components are limited to forms and interactive workspace controls; public discovery stays server-rendered.
+The shared `@eventory/ui` package contains presentation primitives (`Button`, `Card`, `Field`, `StatusBadge`, and `Container`). Route components own domain composition. Client components are limited to forms and interactive workspace controls; public discovery stays server-rendered. Public discovery artwork may be CSS or SVG, but it is decorative, hidden from assistive technology, and never represents live event data without an API field.

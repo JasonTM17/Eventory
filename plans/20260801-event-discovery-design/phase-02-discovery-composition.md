@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Discovery composition
-status: pending
+status: completed
 priority: P1
 dependencies: [1]
 ---

@@ -3,7 +3,7 @@ title: Eventory public discovery design refresh
 description: >-
   Turn the selected Stitch direction into an accessible, data-honest Eventory
   public-discovery experience without expanding the current API contract.
-status: in-progress
+status: completed
 priority: P2
 effort: 1 day
 branch: feat/event-discovery-design
@@ -47,8 +47,8 @@ collection, category filters, or API surface area.
 | Phase | Name | Status |
 | --- | --- | --- |
 | 1 | [Semantic shell and navigation](./phase-01-semantic-shell.md) | Completed |
-| 2 | [Discovery composition](./phase-02-discovery-composition.md) | Pending |
-| 3 | [Visual proof and quality gates](./phase-03-visual-validation.md) | Pending |
+| 2 | [Discovery composition](./phase-02-discovery-composition.md) | Completed |
+| 3 | [Visual proof and quality gates](./phase-03-visual-validation.md) | Completed |
 
 ## Dependencies
 
@@ -59,18 +59,18 @@ collection, category filters, or API surface area.
 
 ## Acceptance criteria
 
-- [ ] Public home and discovery routes remain server-rendered and work when
+- [x] Public home and discovery routes remain server-rendered and work when
       the event API returns an empty list or is unavailable.
-- [ ] Header has keyboard-accessible mobile navigation and the document has a
+- [x] Header has keyboard-accessible mobile navigation and the document has a
       skip link targeting the main landmark.
-- [ ] No `Link` contains a native `button`; all calls to action use valid,
+- [x] No `Link` contains a native `button`; all calls to action use valid,
       focusable semantics.
-- [ ] The visual ticket/seat-map treatment is CSS/SVG, decorative, and does
+- [x] The visual ticket/seat-map treatment is CSS/SVG, decorative, and does
       not add an image field or fake event data.
-- [ ] Motion is optional and disabled for `prefers-reduced-motion`.
-- [ ] Screenshots used later in README are captured from the running product,
+- [x] Motion is optional and disabled for `prefers-reduced-motion`.
+- [x] Screenshots used later in README are captured from the running product,
       not from Stitch.
-- [ ] Format, lint, typecheck, web build, focused browser checks, and desktop
+- [x] Format, lint, typecheck, web build, focused browser checks, and desktop
       plus mobile visual review pass before merge.
 
 ## Commit boundaries
