@@ -18,10 +18,10 @@ Build venues, sections, seats, events, sessions, ticket types, inventory rules, 
 
 ## File inventory
 
-| Action | Paths                                                                                                                                              |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Action | Paths                                                                                                        |
+| ------ | ------------------------------------------------------------------------------------------------------------ |
 | Create | `apps/api/src/modules/venues/`, `apps/api/src/modules/events/`, related Prisma migrations and seed factories |
-| Create | `apps/api/test/events/`, `docs/database/erd.md`, `docs/adr/ADR-004-postgresql-booking-source-of-truth.md`                                          |
+| Create | `apps/api/test/events/`, `docs/database/erd.md`, `docs/adr/ADR-004-postgresql-booking-source-of-truth.md`    |
 
 ## Architecture
 

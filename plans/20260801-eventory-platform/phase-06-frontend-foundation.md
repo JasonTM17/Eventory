@@ -1,8 +1,8 @@
 ---
 phase: 6
-title: 'Frontend foundation'
-status: pending
-effort: ''
+title: Frontend foundation
+status: completed
+effort: 1 session
 ---
 
 # Phase 6: Frontend foundation
@@ -46,9 +46,15 @@ Contracts are shared as validation/types without leaking server internals. Serve
 
 ## Success Criteria
 
-- [ ] Required public and organizer routes exist with typed data boundaries.
-- [ ] Auth is cookie-safe and not dependent on localStorage tokens.
-- [ ] Web build/lint/typecheck pass.
+- [x] Required public and organizer routes exist with typed data boundaries.
+- [x] Auth is cookie-safe and not dependent on localStorage tokens.
+- [x] Web build/lint/typecheck pass.
+
+## Verification
+
+- `pnpm --filter @eventory/web lint`
+- `pnpm --filter @eventory/web typecheck`
+- `pnpm --filter @eventory/web build`
 
 ## Dependency map
 
