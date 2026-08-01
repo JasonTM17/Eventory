@@ -764,6 +764,160 @@ a:focus-visible {
   flex-wrap: wrap;
   gap: 10px;
 }
+.wallet-grid,
+.scanner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.wallet-ticket {
+  display: grid;
+  gap: 22px;
+}
+.wallet-ticket__header,
+.wallet-ticket__meta,
+.wallet-ticket__footer,
+.scanner-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wallet-ticket__header h2,
+.scanner-card h2 {
+  margin: 8px 0 0;
+  font-size: 28px;
+  letter-spacing: -0.06em;
+}
+.wallet-ticket__meta {
+  align-items: start;
+  border-block: 1px solid var(--line);
+  padding: 16px 0;
+}
+.wallet-ticket__meta > div {
+  min-width: 0;
+}
+.wallet-ticket__meta span,
+.wallet-ticket__meta small,
+.wallet-ticket__footer {
+  color: var(--muted);
+  font-size: 12px;
+}
+.wallet-ticket__meta strong,
+.wallet-ticket__meta small {
+  display: block;
+}
+.wallet-ticket__meta strong {
+  margin-top: 5px;
+  font-size: 14px;
+}
+.wallet-ticket__meta small {
+  margin-top: 4px;
+}
+.wallet-ticket__qr {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.ticket-qr {
+  width: min(240px, 100%);
+  height: auto;
+  border: 10px solid var(--surface);
+  border-radius: 14px;
+  box-shadow: 0 5px 25px rgba(27, 40, 33, 0.09);
+}
+.ticket-qr__loading {
+  width: 240px;
+  height: 240px;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #eef1eb 30%, #f8faf5 45%, #eef1eb 60%);
+  background-size: 200% 100%;
+  animation: ticket-qr-shimmer 1.2s linear infinite;
+}
+.wallet-ticket__qr p,
+.scanner-note,
+.scanner-actions span {
+  max-width: 390px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.wallet-ticket__footer {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.scanner-grid {
+  align-items: start;
+}
+.scanner-card {
+  display: grid;
+  gap: 20px;
+}
+.scanner-card--camera {
+  background: var(--ink);
+  color: var(--green);
+}
+.scanner-card--camera .kicker,
+.scanner-card--camera .scanner-actions span {
+  color: #9cad96;
+}
+.scanner-preview {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(185, 243, 110, 0.4);
+  border-radius: 16px;
+  color: #9cad96;
+  background: #202e28;
+  font-size: 13px;
+}
+.scanner-preview video {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  object-fit: cover;
+}
+.scanner-input {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.scanner-result {
+  display: grid;
+  gap: 4px;
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-size: 13px;
+}
+.scanner-result span {
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+.scanner-result--success {
+  color: #315d1a;
+  background: #e5f8cf;
+}
+.scanner-result--warning {
+  color: #856019;
+  background: #fff0c7;
+}
+.scanner-result--danger {
+  color: #8e2e25;
+  background: #ffe7e1;
+}
+@keyframes ticket-qr-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
 @media (max-width: 800px) {
   .ui-container {
     width: min(100% - 32px, 620px);
@@ -788,7 +942,9 @@ a:focus-visible {
     font-size: clamp(50px, 17vw, 80px);
   }
   .event-grid,
-  .studio-grid {
+  .studio-grid,
+  .wallet-grid,
+  .scanner-grid {
     grid-template-columns: 1fr;
   }
   .studio-card--wide {

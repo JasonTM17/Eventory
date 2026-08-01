@@ -110,3 +110,42 @@ export interface BookingSummary {
     expiresAt: string | null;
   } | null;
 }
+
+export type TicketStatus = 'ISSUED' | 'CHECKED_IN' | 'VOID' | 'REFUNDED';
+
+export interface TicketSummary {
+  id: string;
+  publicCode: string;
+  status: TicketStatus;
+  eventSessionId: string;
+  event: {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  };
+  session: {
+    id: string;
+    name: string;
+    startAt: string;
+    endAt: string;
+  };
+  seatCode: string | null;
+  ticketTypeName: string;
+  priceMinor: number;
+  currency: string;
+  issuedAt: string;
+  checkedInAt: string | null;
+  qrPayload: string;
+}
+
+export type CheckInResult =
+  'VALID' | 'ALREADY_CHECKED_IN' | 'TICKET_VOID' | 'TICKET_REFUNDED' | 'EVENT_CANCELLED';
+
+export interface CheckInResponse {
+  result: CheckInResult;
+  ticketCode: string;
+  ticketStatus: TicketStatus;
+  eventSessionId: string;
+  checkedInAt: string | null;
+}

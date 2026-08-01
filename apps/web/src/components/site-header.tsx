@@ -11,6 +11,7 @@ export function SiteHeader(): React.JSX.Element {
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
           <Link href="/events">Discover</Link>
+          <Link href="/tickets">Tickets</Link>
           <Link href="/organizer">Organizer studio</Link>
           <Link className="site-nav__action" href="/login">
             Sign in
