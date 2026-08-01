@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { CurrentUser, Public } from '../../common/auth/auth.decorators.js';
+import { CurrentUser, Public, RateLimit } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
 import { IdentityService } from './identity.service.js';
 import { LoginDto, RegisterDto } from './identity.dto.js';
@@ -10,6 +10,7 @@ export class IdentityController {
   constructor(private readonly identity: IdentityService) {}
 
   @Public()
+  @RateLimit(10)
   @Post('register')
   register(
     @Body() body: RegisterDto,
@@ -20,6 +21,7 @@ export class IdentityController {
   }
 
   @Public()
+  @RateLimit(10)
   @Post('login')
   login(
     @Body() body: LoginDto,
@@ -30,6 +32,7 @@ export class IdentityController {
   }
 
   @Public()
+  @RateLimit(30)
   @Post('refresh')
   refresh(
     @Req() request: Request,
@@ -39,6 +42,7 @@ export class IdentityController {
   }
 
   @Post('logout')
+  @RateLimit(60)
   logout(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,

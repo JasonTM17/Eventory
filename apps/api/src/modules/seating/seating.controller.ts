@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { CurrentUser, Public } from '../../common/auth/auth.decorators.js';
+import { CurrentUser, Public, RateLimit } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
 import { HoldSeatsDto, ReleaseSeatsDto, RenewSeatsDto } from './seating.dto.js';
 import { SeatingService } from './seating.service.js';
@@ -15,6 +15,7 @@ export class SeatingController {
   }
 
   @Post(':eventSessionId/holds')
+  @RateLimit(60)
   @HttpCode(HttpStatus.OK)
   hold(
     @Param('eventSessionId') eventSessionId: string,
@@ -25,6 +26,7 @@ export class SeatingController {
   }
 
   @Delete(':eventSessionId/holds')
+  @RateLimit(60)
   @HttpCode(HttpStatus.OK)
   release(
     @Param('eventSessionId') eventSessionId: string,
@@ -35,6 +37,7 @@ export class SeatingController {
   }
 
   @Post(':eventSessionId/holds/renew')
+  @RateLimit(120)
   @HttpCode(HttpStatus.OK)
   renew(
     @Param('eventSessionId') eventSessionId: string,

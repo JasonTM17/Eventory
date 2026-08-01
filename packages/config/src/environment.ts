@@ -17,6 +17,9 @@ const environmentSchema = z.object({
   QR_SIGNING_SECRET: z.string().min(32).default(localQrSecret),
   QR_KEY_VERSION: z.coerce.number().int().min(1).max(100).default(1),
   MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(32).default(localMockPaymentSecret),
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().min(1).max(10_000).default(120),
+  RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().min(1).max(3_600).default(60),
+  METRICS_TOKEN: z.string().max(200).default(''),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
   REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().min(300).max(31_536_000).default(2_592_000),
   SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().min(30).max(1_800).default(600),
@@ -46,6 +49,10 @@ export function parseEnvironment(input: Record<string, unknown> = process.env): 
 
     if (environment.MOCK_PAYMENT_WEBHOOK_SECRET === localMockPaymentSecret) {
       throw new Error('MOCK_PAYMENT_WEBHOOK_SECRET must be replaced before running in production');
+    }
+
+    if (!environment.METRICS_TOKEN) {
+      throw new Error('METRICS_TOKEN must be configured before running in production');
     }
   }
 

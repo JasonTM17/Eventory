@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
-import { CurrentUser, Roles } from '../../common/auth/auth.decorators.js';
+import { CurrentUser, RateLimit, Roles } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
 import { UserRole } from '../../generated/prisma/client.js';
 import { AdminEventQueryDto, AdminPageQueryDto, UpdateUserStatusDto } from './admin.dto.js';
@@ -16,6 +16,7 @@ export class AdminController {
   }
 
   @Patch('users/:userId/status')
+  @RateLimit(60)
   updateUserStatus(
     @Param('userId') userId: string,
     @Body() body: UpdateUserStatusDto,

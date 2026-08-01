@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { getCorsOrigins } from '@eventory/config';
@@ -18,6 +19,8 @@ async function bootstrap(): Promise<void> {
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
   app.use(helmet());
+  app.use(json({ limit: '256kb' }));
+  app.use(urlencoded({ extended: false, limit: '32kb' }));
   app.enableCors({
     origin: getCorsOrigins(config.getOrThrow<string>('CORS_ORIGINS')),
     credentials: true,

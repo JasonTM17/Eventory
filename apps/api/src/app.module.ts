@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { parseEnvironment } from '@eventory/config';
 import { ApiExceptionFilter } from './common/http/api-exception.filter.js';
@@ -22,6 +22,10 @@ import { CheckInModule } from './modules/check-in/check-in.module.js';
 import { AnalyticsModule } from './modules/analytics/analytics.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { MetricsModule } from './common/observability/metrics.module.js';
+import { MetricsInterceptor } from './common/observability/metrics.interceptor.js';
+import { CsrfGuard } from './common/security/csrf.guard.js';
+import { RateLimitGuard } from './common/security/rate-limit.guard.js';
 
 @Module({
   imports: [
@@ -38,6 +42,12 @@ import { HealthModule } from './modules/health/health.module.js';
           '*.password',
           '*.refreshToken',
           '*.qrSignature',
+          'req.body.qrPayload',
+          'req.body.signature',
+          'req.body.clientSecret',
+          'req.headers.x-mock-payment-signature',
+          'res.headers.set-cookie',
+          'res.headers.authorization',
         ],
       },
     }),
@@ -56,11 +66,15 @@ import { HealthModule } from './modules/health/health.module.js';
     AnalyticsModule,
     AdminModule,
     HealthModule,
+    MetricsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: RateLimitGuard },
+    { provide: APP_GUARD, useClass: CsrfGuard },
+    { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },
   ],
 })
 export class AppModule implements NestModule {

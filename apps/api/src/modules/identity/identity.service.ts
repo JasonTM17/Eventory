@@ -123,6 +123,8 @@ export class IdentityService {
         data: { revokedAt: new Date() },
       });
     }
+    const actorUserId = (request as Request & { user?: { id?: string } }).user?.id;
+    if (actorUserId) await this.recordAudit('USER_LOGGED_OUT', actorUserId, request);
     response.clearCookie(ACCESS_TOKEN_COOKIE, this.cookieOptions('/api'));
     response.clearCookie(REFRESH_TOKEN_COOKIE, this.cookieOptions('/api/v1/auth'));
     return { success: true };

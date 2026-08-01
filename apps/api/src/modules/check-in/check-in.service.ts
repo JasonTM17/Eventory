@@ -91,6 +91,15 @@ export class CheckInService {
             checkedInAt,
           },
         });
+        await tx.auditLog.create({
+          data: {
+            action: 'TICKET_CHECKED_IN',
+            resourceType: 'Ticket',
+            resourceId: ticket.id,
+            actorUserId: scannerUserId,
+            metadata: { eventSessionId: ticket.eventSessionId },
+          },
+        });
         return {
           result: 'VALID' as const,
           ticketCode: ticket.publicCode,

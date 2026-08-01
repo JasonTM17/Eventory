@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { CurrentUser } from '../../common/auth/auth.decorators.js';
+import { CurrentUser, RateLimit } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
 import { CheckInDto } from './check-in.dto.js';
 import { CheckInService } from './check-in.service.js';
@@ -10,6 +10,7 @@ export class CheckInController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @RateLimit(120)
   check(@Body() body: CheckInDto, @CurrentUser() user: AuthenticatedUser): Promise<unknown> {
     return this.checkIn.check(user.id, body);
   }

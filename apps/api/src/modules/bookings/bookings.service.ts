@@ -141,6 +141,20 @@ export class BookingsService {
           include: { items: true, payment: true },
         });
 
+        await tx.auditLog.create({
+          data: {
+            action: 'BOOKING_CREATED',
+            resourceType: 'Booking',
+            resourceId: created.id,
+            actorUserId: userId,
+            metadata: {
+              eventSessionId: created.eventSessionId,
+              totalMinor: created.totalMinor,
+              currency: created.currency,
+            },
+          },
+        });
+
         const response = this.toView(created);
         if (normalizedKey) {
           await tx.idempotencyRecord.create({
@@ -223,6 +237,17 @@ export class BookingsService {
             providerEventId: payload.id,
             eventType: payload.type,
             payload: payload as unknown as Prisma.InputJsonValue,
+          },
+        });
+        await tx.auditLog.create({
+          data: {
+            action: 'PAYMENT_WEBHOOK_ACCEPTED',
+            resourceType: 'Payment',
+            resourceId: payment.id,
+            metadata: {
+              eventType: payload.type,
+              providerEventId: payload.id,
+            },
           },
         });
         const booking = await tx.booking.findUniqueOrThrow({
