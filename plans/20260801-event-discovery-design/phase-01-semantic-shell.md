@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: Semantic shell and navigation
-status: pending
+status: completed
 priority: P1
 dependencies: []
 ---
@@ -38,6 +38,14 @@ unless native HTML disclosure cannot meet the interaction requirement.
 - Keyboard tab order: skip link, brand, menu/opened routes, sign-in.
 - Browser snapshots at 375px and desktop width show all primary destinations.
 - Verify `prefers-reduced-motion: reduce` disables nonessential animation.
+
+## Completed evidence
+
+- Web typecheck and lint passed on the feature worktree.
+- Browser verification at `375px` confirmed no horizontal overflow and all four
+  routes in the native mobile disclosure.
+- Keyboard verification focused the skip link first; reduced-motion media
+  emulation reduced button transitions to `0.00001s`.
 
 ## Risks and rollback
 

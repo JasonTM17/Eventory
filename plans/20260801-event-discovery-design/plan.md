@@ -46,7 +46,7 @@ collection, category filters, or API surface area.
 
 | Phase | Name | Status |
 | --- | --- | --- |
-| 1 | [Semantic shell and navigation](./phase-01-semantic-shell.md) | Pending |
+| 1 | [Semantic shell and navigation](./phase-01-semantic-shell.md) | Completed |
 | 2 | [Discovery composition](./phase-02-discovery-composition.md) | Pending |
 | 3 | [Visual proof and quality gates](./phase-03-visual-validation.md) | Pending |
 
