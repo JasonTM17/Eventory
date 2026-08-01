@@ -149,3 +149,35 @@ export interface CheckInResponse {
   eventSessionId: string;
   checkedInAt: string | null;
 }
+
+export interface EventAnalyticsSummary {
+  eventId: string;
+  from: string;
+  to: string;
+  sessions: number;
+  bookings: { total: number; byStatus: Record<string, number> };
+  payments: {
+    successfulCount: number;
+    grossMinor: number;
+    currencies: string[];
+    byStatus: Record<string, number>;
+  };
+  attendance: { issued: number; checkedIn: number; checkInRate: number };
+}
+
+export interface AdminUserSummary {
+  id: string;
+  email: string;
+  displayName: string;
+  role: AuthUser['role'];
+  status: 'ACTIVE' | 'SUSPENDED';
+  createdAt: string;
+}
+
+export interface AdminPage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+}

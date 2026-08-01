@@ -913,6 +913,80 @@ a:focus-visible {
   color: #8e2e25;
   background: #ffe7e1;
 }
+.analytics-stack {
+  display: grid;
+  gap: 16px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.metric-card {
+  display: grid;
+  gap: 8px;
+}
+.metric-card strong {
+  font-size: clamp(28px, 5vw, 48px);
+  letter-spacing: -0.08em;
+}
+.metric-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.analytics-detail {
+  display: grid;
+  gap: 20px;
+}
+.analytics-rows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.analytics-rows > div {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.analytics-rows span,
+.analytics-rows strong {
+  display: block;
+}
+.analytics-rows span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.analytics-rows strong {
+  margin-top: 6px;
+  font-size: 22px;
+}
+.admin-card {
+  display: grid;
+  gap: 20px;
+}
+.admin-table {
+  display: grid;
+  gap: 8px;
+}
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding: 13px 0;
+}
+.admin-row strong,
+.admin-row small {
+  display: block;
+}
+.admin-row small,
+.admin-role {
+  color: var(--muted);
+  font-size: 12px;
+}
+.admin-row small {
+  margin-top: 3px;
+}
 @keyframes ticket-qr-shimmer {
   to {
     background-position: -200% 0;
@@ -944,8 +1018,18 @@ a:focus-visible {
   .event-grid,
   .studio-grid,
   .wallet-grid,
-  .scanner-grid {
+  .scanner-grid,
+  .metric-grid {
     grid-template-columns: 1fr;
+  }
+  .analytics-rows {
+    grid-template-columns: 1fr;
+  }
+  .admin-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .admin-row .ui-button {
+    grid-column: 1 / -1;
   }
   .studio-card--wide {
     grid-column: auto;
