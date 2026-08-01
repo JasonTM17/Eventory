@@ -1,9 +1,9 @@
 ---
 phase: 2
-title: 'Booking and payment integrity'
-status: pending
+title: Booking and payment integrity
+status: in-progress
 priority: P1
-effort: '1-2d'
+effort: 1-2d
 dependencies: []
 ---
 

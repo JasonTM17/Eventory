@@ -44,7 +44,7 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 | Phase | Name | Status |
 |-------|------|--------|
 | 1 | [Session security](./phase-01-session-security.md) | Completed |
-| 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Pending |
+| 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | In Progress |
 | 3 | [Operational resilience](./phase-03-operational-resilience.md) | Pending |
 | 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Pending |
 
