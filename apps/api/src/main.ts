@@ -12,6 +12,8 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const config = app.get(ConfigService);
 
+  app.enableShutdownHooks();
+
   app.useLogger(app.get(Logger));
   app.use(helmet());
   app.enableCors({

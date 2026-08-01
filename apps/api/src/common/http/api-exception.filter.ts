@@ -33,9 +33,9 @@ export class ApiExceptionFilter implements ExceptionFilter {
       typeof exceptionResponse === 'string' ? undefined : exceptionResponse?.code;
     const responseDetails =
       typeof exceptionResponse === 'string' ? undefined : exceptionResponse?.details;
-    const message = this.toMessage(responseMessage, exception);
+    const message = this.toMessage(responseMessage, exception, status);
     const code = this.toCode(responseCode, status);
-    const details = responseDetails ?? this.toDetails(responseMessage);
+    const details = this.toDetails(responseDetails ?? responseMessage);
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
@@ -59,14 +59,17 @@ export class ApiExceptionFilter implements ExceptionFilter {
     return undefined;
   }
 
-  private toMessage(value: unknown, exception: unknown): string {
+  private toMessage(value: unknown, exception: unknown, status: number): string {
     if (typeof value === 'string') return value;
     if (Array.isArray(value)) return 'Request validation failed';
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) return 'Unexpected server error';
     return exception instanceof Error ? exception.message : 'Unexpected server error';
   }
 
   private toDetails(value: unknown): unknown {
-    return Array.isArray(value) ? value : {};
+    if (Array.isArray(value)) return value.slice(0, 20);
+    if (value && typeof value === 'object') return value;
+    return {};
   }
 
   private toCode(value: unknown, status: number): string {

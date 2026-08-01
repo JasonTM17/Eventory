@@ -25,6 +25,16 @@ describe('health endpoints', () => {
     assert.equal(typeof response.headers['x-request-id'], 'string');
   });
 
+  it('replaces an invalid caller request id with a bounded generated id', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/health/live')
+      .set('x-request-id', 'request id with spaces')
+      .expect(200);
+
+    assert.notEqual(response.headers['x-request-id'], 'request id with spaces');
+    assert.match(response.headers['x-request-id'] ?? '', /^[0-9a-f-]{36}$/);
+  });
+
   it('returns readiness when PostgreSQL and Redis are available', async () => {
     const response = await request(app.getHttpServer()).get('/api/v1/health/ready').expect(200);
     assert.deepEqual(response.body, {

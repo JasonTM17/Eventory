@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/.turbo/**',
       'plans/templates/**',
+      'apps/api/prisma.config.ts',
     ],
   },
   eslint.configs.recommended,
