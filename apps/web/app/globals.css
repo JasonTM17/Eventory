@@ -701,6 +701,69 @@ a:focus-visible {
     12px 'DM Mono',
     monospace;
 }
+.checkout-card {
+  width: min(100%, 720px);
+  margin: 36px auto 80px;
+}
+.checkout-card__header,
+.checkout-summary,
+.checkout-items > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.checkout-card h1 {
+  margin: 10px 0 0;
+  font-size: clamp(42px, 7vw, 72px);
+  letter-spacing: -0.08em;
+  line-height: 0.95;
+}
+.checkout-summary {
+  margin: 32px 0 18px;
+  border-block: 1px solid var(--line);
+  padding: 18px 0;
+}
+.checkout-summary span,
+.checkout-summary strong,
+.checkout-items span,
+.checkout-items strong {
+  display: block;
+}
+.checkout-summary span,
+.checkout-items span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.checkout-summary strong {
+  margin-top: 6px;
+  font-size: 18px;
+}
+.checkout-items {
+  display: grid;
+  gap: 10px;
+}
+.checkout-items > div {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.checkout-actions {
+  margin-top: 26px;
+  border: 1px solid #cfe7af;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f0f9e6;
+}
+.checkout-actions p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.checkout-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 @media (max-width: 800px) {
   .ui-container {
     width: min(100% - 32px, 620px);

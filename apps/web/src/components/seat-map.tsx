@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { io, type Socket } from 'socket.io-client';
 import type {
   SeatAvailability,
@@ -19,6 +20,10 @@ interface SeatUpdate {
   seatIds: string[];
   state: 'held' | 'available';
   holdExpiresAt?: string;
+}
+
+function holdStorageKey(eventSessionId: string): string {
+  return `eventory:seat-hold:${eventSessionId}`;
 }
 
 export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.Element {
@@ -50,6 +55,22 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem(holdStorageKey(eventSessionId));
+    if (!stored) return;
+    try {
+      const restored = JSON.parse(stored) as SeatHoldResponse;
+      if (new Date(restored.expiresAt).getTime() > Date.now()) {
+        setHold(restored);
+        setSecondsLeft(Math.ceil((new Date(restored.expiresAt).getTime() - Date.now()) / 1_000));
+      } else {
+        window.sessionStorage.removeItem(holdStorageKey(eventSessionId));
+      }
+    } catch {
+      window.sessionStorage.removeItem(holdStorageKey(eventSessionId));
+    }
+  }, [eventSessionId]);
 
   useEffect(() => {
     const origin = apiBaseUrl.replace(/\/api\/v1\/?$/, '');
@@ -87,6 +108,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
       setSecondsLeft(remaining);
       if (remaining === 0) {
         setHold(null);
+        window.sessionStorage.removeItem(holdStorageKey(eventSessionId));
         setMessage('Your hold expired. The map is available again.');
         void refresh();
       }
@@ -121,6 +143,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
         body: JSON.stringify({ seatIds: selected, idempotencyKey: crypto.randomUUID() }),
       });
       setHold(response);
+      window.sessionStorage.setItem(holdStorageKey(eventSessionId), JSON.stringify(response));
       setSelected([]);
       setSecondsLeft(Math.ceil((new Date(response.expiresAt).getTime() - Date.now()) / 1_000));
       setMessage('Seats are held for you. Continue to checkout before the timer ends.');
@@ -145,6 +168,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
         body: JSON.stringify({ seatIds: hold.seatIds, holdToken: hold.holdToken }),
       });
       setHold(null);
+      window.sessionStorage.removeItem(holdStorageKey(eventSessionId));
       setMessage('Hold released.');
       await refresh();
     } catch (requestError) {
@@ -223,6 +247,9 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
           <Button variant="secondary" onClick={releaseHold} disabled={busy}>
             Release
           </Button>
+          <Link className="ui-button ui-button--primary" href={`/checkout/${eventSessionId}`}>
+            Continue to payment
+          </Link>
         </div>
       ) : (
         <div className="seat-map-card__footer">
