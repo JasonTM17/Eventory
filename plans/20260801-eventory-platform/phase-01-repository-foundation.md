@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: Repository foundation
-status: in-progress
+status: completed
 effort: ''
 ---
 
