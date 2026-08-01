@@ -1,8 +1,8 @@
 ---
 phase: 7
-title: 'Seat reservation'
-status: pending
-effort: ''
+title: Seat reservation
+status: completed
+effort: 1 session
 ---
 
 # Phase 7: Seat reservation
@@ -48,9 +48,16 @@ Redis key `seat-hold:{eventSessionId}:{seatId}` stores an opaque hold token, boo
 
 ## Success Criteria
 
-- [ ] No double active holds under concurrency tests.
-- [ ] Hold ownership and expiry are revalidated on release/confirmation.
-- [ ] WebSocket updates are scoped to the event session and do not leak user data.
+- [x] No double active holds under concurrency tests.
+- [x] Hold ownership and expiry are revalidated on release/confirmation.
+- [x] WebSocket updates are scoped to the event session and do not leak user data.
+
+## Verification
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @eventory/api test` (seat hold, ownership, idempotency, and race tests)
+- `pnpm --filter @eventory/web build`
 
 ## Dependency map
 

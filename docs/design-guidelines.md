@@ -4,14 +4,14 @@ Eventory uses an editorial, high-contrast visual language: warm paper surfaces, 
 
 ## Tokens
 
-| Token | Value | Use |
-| --- | --- | --- |
-| Ink | `#162120` | body copy, borders, primary contrast |
-| Paper | `#F5F3ED` | page background |
-| Surface | `#FFFDF8` | cards and forms |
-| Signal | `#B9F36E` | primary actions and positive state |
-| Violet | `#6656D8` | keyboard focus ring |
-| Muted | `#68736E` | secondary copy and metadata |
+| Token   | Value     | Use                                  |
+| ------- | --------- | ------------------------------------ |
+| Ink     | `#162120` | body copy, borders, primary contrast |
+| Paper   | `#F5F3ED` | page background                      |
+| Surface | `#FFFDF8` | cards and forms                      |
+| Signal  | `#B9F36E` | primary actions and positive state   |
+| Violet  | `#6656D8` | keyboard focus ring                  |
+| Muted   | `#68736E` | secondary copy and metadata          |
 
 ## Interaction rules
 
