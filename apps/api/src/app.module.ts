@@ -13,6 +13,7 @@ import { RedisModule } from './infrastructure/redis/redis.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { OrganizationsModule } from './modules/organizations/organizations.module.js';
 import { VenuesModule } from './modules/venues/venues.module.js';
+import { EventsModule } from './modules/events/events.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
@@ -39,6 +40,7 @@ import { HealthModule } from './modules/health/health.module.js';
     IdentityModule,
     OrganizationsModule,
     VenuesModule,
+    EventsModule,
     HealthModule,
   ],
   providers: [
