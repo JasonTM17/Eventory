@@ -4,8 +4,8 @@ Eventory is a production-oriented full-stack event ticketing platform. It is des
 
 ## Repository status
 
-The local release journey is implemented on the `feature/eventory-platform`
-branch. The phase plan, architecture records, security model, CI, Docker
+The local release journey is implemented on the `main` branch. The phase plan,
+architecture records, security model, CI, Docker
 images, and operational runbooks are maintained alongside the code.
 
 ## Stack
