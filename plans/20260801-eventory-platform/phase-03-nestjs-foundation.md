@@ -1,7 +1,7 @@
 ---
 phase: 3
-title: 'NestJS foundation'
-status: pending
+title: NestJS foundation
+status: completed
 effort: ''
 ---
 
