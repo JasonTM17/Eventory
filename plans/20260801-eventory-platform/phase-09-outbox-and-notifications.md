@@ -1,8 +1,8 @@
 ---
 phase: 9
 title: 'Outbox and notifications'
-status: pending
-effort: ''
+status: completed
+effort: 1 session
 ---
 
 # Phase 9: Outbox and notifications
@@ -46,9 +46,16 @@ Outbox rows contain event type, aggregate/public ID, payload version, attempt co
 
 ## Success Criteria
 
-- [ ] Outbox records are written atomically with booking/payment/ticket changes.
-- [ ] Notification attempts are persisted and observable.
-- [ ] Duplicate processing tests pass.
+- [x] Outbox records are written atomically with booking/payment/ticket changes.
+- [x] Notification attempts are persisted and observable.
+- [x] Duplicate processing tests pass.
+
+## Verification
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @eventory/api exec node --require ts-node/register --test test/outbox.e2e.test.ts`
+- Mailpit delivery and dead-letter transitions are covered by the integration test.
 
 ## Dependency map
 
