@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".."
+  },
+  "include": ["seed.ts", "../src/generated/**/*.ts"],
+  "exclude": ["node_modules", "../dist"]
+}
