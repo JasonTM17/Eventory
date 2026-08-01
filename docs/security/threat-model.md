@@ -19,9 +19,13 @@ model and the controls verified in the API.
 
 The browser-to-API boundary validates DTOs, rejects unknown fields, applies
 body limits, uses Helmet headers, checks the CORS allowlist, and rejects
-cookie-backed mutations from an untrusted `Origin`. Requests without an
-`Origin` are allowed for server-to-server clients; deployments should keep
-the API private or use an authenticated gateway for those clients.
+session issuance from an untrusted source. A supplied `Origin` or `Referer`
+must normalize to `CORS_ORIGINS`; browser-indicated requests without either are
+rejected. Originless session issuance is reserved for SSR/service callers that
+send `X-Eventory-Client: server` and do not present `Sec-Fetch-Site`; any
+request that carries Fetch Metadata without a trusted origin is rejected.
+Deployments should still keep the API private or use an authenticated gateway
+for service callers.
 
 ## Adversarial scenarios and controls
 
@@ -31,7 +35,7 @@ the API private or use an authenticated gateway for those clients.
 | BOLA / tenant escape                    | Guess event, booking, ticket, organization, or admin IDs                     | Ownership queries, organization membership policy, admin role guard, cross-tenant tests                                                          | Operators with database credentials can bypass the API; use least-privilege database access                           |
 | Seat race / replay                      | Two buyers hold or confirm the same seat                                     | Redis Lua hold script, PostgreSQL allocation transaction, idempotency records, payment-event uniqueness                                          | Redis outage rejects holds; see the Redis runbook                                                                     |
 | QR forgery / replay                     | Edit a QR, reuse it at another session, or scan it twice concurrently        | HMAC-SHA256, key version, random nonce, opaque public code, session binding, conditional status update, unique check-in row                      | An authorized scanner can still scan a valid ticket; rotate signing keys with a future key version                    |
-| CSRF / cross-origin mutation            | A malicious page submits a cookie-backed POST/PATCH/DELETE                   | Origin allowlist guard, `SameSite=Lax` cookies, CORS credentials allowlist                                                                       | Requests with no `Origin` are intentionally supported for non-browser clients                                         |
+| CSRF / login CSRF                       | A malicious page submits a cookie-backed mutation or issues a session        | Origin allowlist guard, route-scoped session-issuance policy, `SameSite=Lax` cookies, CORS credentials allowlist                                 | Originless session issuance is limited to SSR/service callers with the explicit non-simple header                     |
 | XSS / unsafe output                     | User-controlled event names or search values rendered in the web app         | React escaping, DTO length constraints, Helmet CSP-related defaults, no raw HTML rendering                                                       | CSP is not a substitute for output encoding; audit any future rich-text feature                                       |
 | Injection                               | Query, search, webhook, or body values reach persistence                     | Prisma parameterization, DTO validation, bounded pagination, no shell interpolation                                                              | Raw SQL is limited to reviewed aggregate/update statements                                                            |
 | Enumeration                             | Probe login, tickets, bookings, or metrics                                   | Generic authentication errors, opaque public codes, ownership filters, metrics token in production                                               | Public event discovery is intentionally searchable by product design                                                  |
@@ -52,8 +56,9 @@ the API private or use an authenticated gateway for those clients.
 
 ## Verification evidence
 
-- `apps/api/test/security.e2e.test.ts` verifies an evil origin is rejected and
-  metrics do not contain sensitive fields.
+- `apps/api/test/security.e2e.test.ts` verifies untrusted session issuance is
+  rejected before persistence or cookies, and metrics do not contain sensitive
+  fields.
 - `apps/api/test/rate-limit.guard.test.ts` verifies the 429 budget and
   `Retry-After` response.
 - `apps/api/test/check-in.e2e.test.ts` verifies forged, wrong-session, and

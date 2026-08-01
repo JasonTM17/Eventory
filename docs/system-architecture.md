@@ -28,7 +28,9 @@ sequence](./architecture/check-in-sequence.md) for detailed flows.
 
 Identity/authentication, organizations, venues, events, seating, bookings,
 payments, outbox, tickets, check-in, analytics, admin, health, and metrics are
-separate Nest modules. Controllers do not write tables directly. Shared
+separate Nest modules. The auth boundary uses a dedicated session-origin guard
+on register/login/refresh, while the global CSRF guard still protects
+authenticated mutations. Controllers do not write tables directly. Shared
 contracts and UI primitives are framework-light packages.
 
 ## State ownership

@@ -1,15 +1,24 @@
 ---
-title: "Eventory release hardening"
-description: "Close verified security, payment-integrity, CI, and public-repository readiness gaps before presenting Eventory as release-ready."
-status: pending
+title: Eventory release hardening
+description: >-
+  Close verified security, payment-integrity, CI, and public-repository
+  readiness gaps before presenting Eventory as release-ready.
+status: in-progress
 priority: P1
-effort: "4-6 days"
-branch: "main"
-tags: [bugfix, security, backend, database, infra, docs, critical]
+effort: 4-6 days
+branch: main
+tags:
+  - bugfix
+  - security
+  - backend
+  - database
+  - infra
+  - docs
+  - critical
 blockedBy: []
 blocks: []
-created: "2026-08-01T12:11:37.831Z"
-createdBy: "ck:plan"
+created: '2026-08-01T12:11:37.831Z'
+createdBy: 'ck:plan'
 source: skill
 ---
 
@@ -34,7 +43,7 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | [Session security](./phase-01-session-security.md) | Pending |
+| 1 | [Session security](./phase-01-session-security.md) | Completed |
 | 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Pending |
 | 3 | [Operational resilience](./phase-03-operational-resilience.md) | Pending |
 | 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Pending |

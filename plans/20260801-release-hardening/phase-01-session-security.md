@@ -1,9 +1,9 @@
 ---
 phase: 1
-title: 'Session security'
-status: pending
+title: Session security
+status: completed
 priority: P1
-effort: '4-6h'
+effort: 4-6h
 dependencies: []
 ---
 
@@ -66,14 +66,14 @@ but remains in the route inventory and test matrix because it mutates a session.
 
 ## Success Criteria
 
-- [ ] A cross-origin registration, login, or refresh request cannot set an
+- [x] A cross-origin registration, login, or refresh request cannot set an
       access or refresh cookie.
-- [ ] Valid same-origin login, registration, refresh, and logout behavior stays
+- [x] Valid same-origin login, registration, refresh, and logout behavior stays
       compatible.
-- [ ] Authenticated cross-origin mutations remain rejected.
-- [ ] Every session-cookie route has an explicit tested origin policy; no route
+- [x] Authenticated cross-origin mutations remain rejected.
+- [x] Every session-cookie route has an explicit tested origin policy; no route
       relies on the absence of an existing cookie as its only CSRF defense.
-- [ ] No token, cookie, or password value is added to logs or test output.
+- [x] No token, cookie, or password value is added to logs or test output.
 
 ## Risk Assessment
 

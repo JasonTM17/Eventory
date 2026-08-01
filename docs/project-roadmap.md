@@ -8,8 +8,9 @@
 3. Next.js discovery/organizer UI and real-time atomic seat holds.
 4. Transactional bookings, mock payment webhooks, outbox notifications.
 5. Signed QR ticket wallet, online organizer check-in, analytics, and admin.
-6. Rate limits, Origin CSRF, body/security headers, audits, metrics, threat
-   model, runbooks, monitoring profile, dependency audit fixes.
+6. Rate limits, Origin CSRF, session-origin guard for login/register/refresh,
+   body/security headers, audits, metrics, threat model, runbooks, monitoring
+   profile, dependency audit fixes.
 7. Docker images, Compose app services, CI workflows, and release docs.
 
 ## Next increments
