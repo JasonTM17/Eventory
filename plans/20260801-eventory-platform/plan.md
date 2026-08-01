@@ -4,7 +4,7 @@ description: >-
   Build Eventory as a production-oriented modular monolith with a Next.js web
   app, NestJS API, reliable seat booking, simulated payments, signed tickets,
   security controls, tests, and delivery automation.
-status: pending
+status: completed
 priority: P1
 branch: feature/eventory-platform
 tags:
@@ -72,7 +72,7 @@ Phases are sequential because schema and contract changes are dependencies. Ever
 | 10    | [Tickets and check-in](./phase-10-tickets-and-check-in.md)                 | Completed |
 | 11    | [Analytics and administration](./phase-11-analytics-and-administration.md) | Completed |
 | 12    | [Hardening](./phase-12-hardening.md)                                       | Completed |
-| 13    | [Delivery](./phase-13-delivery.md)                                         | Pending   |
+| 13    | [Delivery](./phase-13-delivery.md)                                         | Completed |
 
 ## Dependencies
 

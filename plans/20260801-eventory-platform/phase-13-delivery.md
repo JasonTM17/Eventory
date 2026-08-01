@@ -1,7 +1,7 @@
 ---
 phase: 13
 title: 'Delivery'
-status: pending
+status: completed
 effort: ''
 ---
 
@@ -35,6 +35,34 @@ CI uses the same root scripts developers run. Docker images use multi-stage depe
 4. Complete architecture, security, API, test, deployment, and runbook docs; validate links/examples.
 5. Run final local clean-start smoke, full checks, `ck:code-review`, staged secret scan, and `ck:ship` dry-run/ship according to remote availability.
 
+## Implementation checklist
+
+- [x] API and web multi-stage images build as non-root runtime containers; API applies migrations before startup.
+- [x] Compose starts PostgreSQL, Redis, Mailpit, API, and web with dependency health checks and configurable host ports.
+- [x] Pull request and main workflows run the shared quality gates, dependency audit, migration validation, and versioned image builds.
+- [x] Required onboarding, architecture, standards, deployment, security, and roadmap documentation is present and link-validated.
+- [x] API tests run deterministically against real PostgreSQL/Redis fixtures; concurrent seat/check-in scenarios remain covered inside suites.
+- [x] Branch `feature/eventory-platform` is pushed without force; GitHub About description and eight topics are verified on `JasonTM17/Eventory`.
+
+## Verification
+
+- `pnpm format:check` — pass
+- `pnpm lint` — pass
+- `pnpm typecheck` — pass
+- `pnpm --filter @eventory/api db:validate` — pass
+- `pnpm audit --prod` — no known vulnerabilities
+- `node .claude/scripts/validate-docs.cjs docs/` — exit 0; five pre-existing component-reference warnings in `docs/design-guidelines.md`
+- `plans/20260801-eventory-platform/reports/review-20260801-phase13.md` — no blocking findings; informational pnpm/docs-validator notes recorded
+- `docker compose config --quiet` and `docker compose --profile monitoring config --quiet` — pass
+- API Docker build + runtime migration/readiness — pass (`database=up`, `redis=up`)
+- Web Docker build + `/events` smoke — pass (HTTP 200)
+- API integration suite — 33 tests, 12 suites, 0 failures, 0 cancellations (sequential fixture mode)
+- Security scan — no high-confidence secrets/dangerous patterns; `pnpm audit --prod` clean
+
+## Docs impact
+
+Major: delivery architecture, code standards, codebase summary, PDR, roadmap, deployment, testing, CI, and security references updated.
+
 ## Test scenario matrix
 
 | Scenario       | Expected result                                                                           |
@@ -47,10 +75,10 @@ CI uses the same root scripts developers run. Docker images use multi-stage depe
 
 ## Success Criteria
 
-- [ ] Docker, CI, docs, and release artifacts are present and validated.
-- [ ] All required definition-of-done journeys and tests pass.
-- [ ] Final branch has focused conventional commits and no untracked secrets.
-- [ ] User receives a commit-by-commit report and any external-auth blocker is explicit.
+- [x] Docker, CI, docs, and release artifacts are present and validated.
+- [x] All required definition-of-done journeys and tests pass.
+- [x] Final branch has focused conventional commits and no untracked secrets.
+- [x] User receives a commit-by-commit report and any external-auth blocker is explicit.
 
 ## Dependency map
 
