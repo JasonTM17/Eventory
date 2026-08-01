@@ -1,8 +1,8 @@
 ---
 phase: 11
 title: 'Analytics and administration'
-status: pending
-effort: ''
+status: completed
+effort: 1 session
 ---
 
 # Phase 11: Analytics and administration
@@ -47,9 +47,16 @@ Analytics services query event-scoped aggregates from PostgreSQL with explicit d
 
 ## Success Criteria
 
-- [ ] Metrics and admin views are API-authorized and tested.
-- [ ] Query plans/index rationale are documented.
-- [ ] Audit records cover moderation and sensitive admin operations.
+- [x] Metrics and admin views are API-authorized and tested.
+- [x] Query plans/index rationale are documented.
+- [x] Audit records cover moderation and sensitive admin operations.
+
+## Verification
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @eventory/api exec node --require ts-node/register --test test/analytics-admin.e2e.test.ts`
+- `pnpm --filter @eventory/web build`
 
 ## Dependency map
 
