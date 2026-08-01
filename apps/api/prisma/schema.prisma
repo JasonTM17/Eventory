@@ -85,6 +85,18 @@ enum OutboxStatus {
   DEAD
 }
 
+enum NotificationChannel {
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  DEAD
+}
+
 model SystemMetadata {
   id        String   @id @default(uuid()) @db.Uuid
   key       String   @unique @db.VarChar(120)
@@ -321,27 +333,28 @@ model SeatAllocation {
 }
 
 model Booking {
-  id             String        @id @default(uuid()) @db.Uuid
-  publicCode     String        @unique @db.VarChar(32)
-  userId         String        @db.Uuid
-  eventSessionId String        @db.Uuid
-  holdId         String        @db.Uuid
-  status         BookingStatus @default(PENDING)
-  currency       String        @db.Char(3)
+  id             String                 @id @default(uuid()) @db.Uuid
+  publicCode     String                 @unique @db.VarChar(32)
+  userId         String                 @db.Uuid
+  eventSessionId String                 @db.Uuid
+  holdId         String                 @db.Uuid
+  status         BookingStatus          @default(PENDING)
+  currency       String                 @db.Char(3)
   subtotalMinor  Int
-  feeMinor       Int           @default(0)
+  feeMinor       Int                    @default(0)
   totalMinor     Int
   expiresAt      DateTime
   confirmedAt    DateTime?
   cancelledAt    DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventSession   EventSession  @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventSession   EventSession           @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
   items          BookingItem[]
   payment        Payment?
   tickets        Ticket[]
   outboxEvents   OutboxEvent[]
+  notifications  NotificationDelivery[]
 
   @@index([userId, createdAt])
   @@index([eventSessionId, status, createdAt])
@@ -430,22 +443,48 @@ model Ticket {
 }
 
 model OutboxEvent {
-  id            String       @id @default(uuid()) @db.Uuid
-  topic         String       @db.VarChar(120)
-  aggregateType String       @db.VarChar(80)
-  aggregateId   String       @db.Uuid
+  id            String                 @id @default(uuid()) @db.Uuid
+  topic         String                 @db.VarChar(120)
+  aggregateType String                 @db.VarChar(80)
+  aggregateId   String                 @db.Uuid
   payload       Json
-  status        OutboxStatus @default(PENDING)
-  attempts      Int          @default(0)
-  nextAttemptAt DateTime     @default(now())
+  status        OutboxStatus           @default(PENDING)
+  attempts      Int                    @default(0)
+  nextAttemptAt DateTime               @default(now())
   processedAt   DateTime?
-  lastError     String?      @db.VarChar(500)
-  createdAt     DateTime     @default(now())
-  bookingId     String?      @db.Uuid
-  booking       Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  lastError     String?                @db.VarChar(500)
+  createdAt     DateTime               @default(now())
+  bookingId     String?                @db.Uuid
+  booking       Booking?               @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  notifications NotificationDelivery[]
 
   @@index([status, nextAttemptAt])
   @@index([aggregateType, aggregateId, createdAt])
   @@index([bookingId, topic])
   @@map("outbox_events")
+}
+
+model NotificationDelivery {
+  id            String              @id @default(uuid()) @db.Uuid
+  dedupeKey     String              @unique @db.VarChar(200)
+  outboxEventId String              @db.Uuid
+  bookingId     String?             @db.Uuid
+  channel       NotificationChannel
+  recipient     String              @db.VarChar(320)
+  template      String              @db.VarChar(120)
+  payload       Json
+  status        NotificationStatus  @default(PENDING)
+  attempts      Int                 @default(0)
+  nextAttemptAt DateTime            @default(now())
+  sentAt        DateTime?
+  lastError     String?             @db.VarChar(500)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  outboxEvent   OutboxEvent         @relation(fields: [outboxEventId], references: [id], onDelete: Cascade)
+  booking       Booking?            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([outboxEventId, channel])
+  @@index([status, nextAttemptAt])
+  @@index([bookingId, channel])
+  @@map("notification_deliveries")
 }

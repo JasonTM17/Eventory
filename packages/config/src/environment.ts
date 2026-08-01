@@ -21,6 +21,8 @@ const environmentSchema = z.object({
   SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().min(30).max(1_800).default(600),
   MAILPIT_HOST: z.string().min(1).default('localhost'),
   MAILPIT_PORT: z.coerce.number().int().min(1).max(65_535).default(1_025),
+  MAIL_FROM: z.string().email().default('no-reply@eventory.local'),
+  OUTBOX_WORKER_ENABLED: z.enum(['true', 'false']).transform((value) => value === 'true').default('false'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 });
 
