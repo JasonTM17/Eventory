@@ -1,0 +1,63 @@
+name: eventory
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-eventory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eventory}
+      POSTGRES_DB: ${POSTGRES_DB:-eventory}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - eventory-postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-eventory} -d ${POSTGRES_DB:-eventory}']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - eventory
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes', '--save', '60', '1']
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - eventory-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - eventory
+
+  mailpit:
+    image: axllent/mailpit:v1.20.3
+    ports:
+      - '${MAILPIT_SMTP_PORT:-1025}:1025'
+      - '${MAILPIT_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://127.0.0.1:8025/']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - eventory
+
+volumes:
+  eventory-postgres-data:
+  eventory-redis-data:
+
+networks:
+  eventory:
+    driver: bridge

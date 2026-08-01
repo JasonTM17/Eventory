@@ -1,0 +1,14 @@
+.git
+.github
+.claude
+.codex
+.env
+.env.*
+node_modules
+dist
+.next
+.turbo
+coverage
+plans
+docs
+*.log
