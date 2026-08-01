@@ -25,12 +25,12 @@ the repository owner's decision.
 
 ## Five-perspective review
 
-| Perspective | Finding | Required guardrail |
-|---|---|---|
-| Architecture | Redis holds are temporary coordination, not a durable checkout identity. | Unique `Booking.holdId`; commit booking/payment claim before provider work. |
-| Security | A client key or webhook order cannot prove payment intent. | Bind idempotency keys to a server-derived request fingerprint; verify and persist provider events first. |
-| Performance | A provider call inside a database transaction would hold locks across the network. | Persist claim, then acquire a short database attempt lease and call the provider outside the transaction. |
-| UX | A duplicate request can arrive while payment initialization is in progress. | Return the same booking and make the checkout UI handle a pending provider initialization safely. |
+| Perspective      | Finding                                                                                        | Required guardrail                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Architecture     | Redis holds are temporary coordination, not a durable checkout identity.                       | Unique `Booking.holdId`; commit booking/payment claim before provider work.                                         |
+| Security         | A client key or webhook order cannot prove payment intent.                                     | Bind idempotency keys to a server-derived request fingerprint; verify and persist provider events first.            |
+| Performance      | A provider call inside a database transaction would hold locks across the network.             | Persist claim, then acquire a short database attempt lease and call the provider outside the transaction.           |
+| UX               | A duplicate request can arrive while payment initialization is in progress.                    | Return the same booking and make the checkout UI handle a pending provider initialization safely.                   |
 | Devil's advocate | Moving all provider work to the outbox now couples Phase 2 to the worker hardening in Phase 3. | Keep the synchronous path, but make it recoverable through a stable provider idempotency identity and lease expiry. |
 
 ## Proposed technical boundary
@@ -53,13 +53,13 @@ the repository owner's decision.
 
 ## Probe findings
 
-| Domain | Question | Why it matters | Next step |
-|---|---|---|---|
-| Billing | When a provider reports first success after the seat hold has expired, should Eventory automatically refund/void or create an operator reconciliation case? | Determines customer outcome, booking/payment statuses, and operator workflow. | DECIDE |
-| Billing | Are refund, cancellation, and chargeback webhooks explicitly unsupported in the mock release? | Prevents the API from implying production financial coverage it does not have. | DECIDE |
-| Operations | Which external provider guarantees an idempotency key and status lookup after a timeout? | A crash-safe recovery path depends on provider contract. | DECIDE before real provider integration |
-| Migration | Does any non-local database contain duplicate `bookings.holdId` values? | A unique invariant must not silently discard historical records. | TEST before deploy |
-| UX | Should a request while provider initialization is leased return 202/polling or wait briefly for the same booking? | Defines public API and checkout UI behavior under concurrency. | DECIDE during implementation |
+| Domain     | Question                                                                                                                                                    | Why it matters                                                                 | Next step                               |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------- |
+| Billing    | When a provider reports first success after the seat hold has expired, should Eventory automatically refund/void or create an operator reconciliation case? | Determines customer outcome, booking/payment statuses, and operator workflow.  | DECIDE                                  |
+| Billing    | Are refund, cancellation, and chargeback webhooks explicitly unsupported in the mock release?                                                               | Prevents the API from implying production financial coverage it does not have. | DECIDE                                  |
+| Operations | Which external provider guarantees an idempotency key and status lookup after a timeout?                                                                    | A crash-safe recovery path depends on provider contract.                       | DECIDE before real provider integration |
+| Migration  | Does any non-local database contain duplicate `bookings.holdId` values?                                                                                     | A unique invariant must not silently discard historical records.               | TEST before deploy                      |
+| UX         | Should a request while provider initialization is leased return 202/polling or wait briefly for the same booking?                                           | Defines public API and checkout UI behavior under concurrency.                 | DECIDE during implementation            |
 
 ## Recommendation
 
