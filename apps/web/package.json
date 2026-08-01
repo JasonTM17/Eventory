@@ -1,0 +1,14 @@
+{
+  "name": "@eventory/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node -e \"console.log('Eventory web workspace ready')\"",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
