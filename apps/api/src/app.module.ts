@@ -19,6 +19,8 @@ import { BookingsModule } from './modules/bookings/bookings.module.js';
 import { OutboxModule } from './modules/outbox/outbox.module.js';
 import { TicketsModule } from './modules/tickets/tickets.module.js';
 import { CheckInModule } from './modules/check-in/check-in.module.js';
+import { AnalyticsModule } from './modules/analytics/analytics.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
@@ -51,6 +53,8 @@ import { HealthModule } from './modules/health/health.module.js';
     OutboxModule,
     TicketsModule,
     CheckInModule,
+    AnalyticsModule,
+    AdminModule,
     HealthModule,
   ],
   providers: [
