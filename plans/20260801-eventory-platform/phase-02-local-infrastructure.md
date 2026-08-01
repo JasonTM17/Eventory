@@ -1,7 +1,7 @@
 ---
 phase: 2
-title: 'Local infrastructure'
-status: pending
+title: Local infrastructure
+status: completed
 effort: ''
 ---
 
