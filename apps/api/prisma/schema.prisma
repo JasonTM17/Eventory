@@ -26,6 +26,22 @@ enum OrganizationMemberRole {
   STAFF
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SALES_OPEN
+  SALES_CLOSED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum SeatAllocationStatus {
+  AVAILABLE
+  BLOCKED
+  SOLD
+}
+
 model SystemMetadata {
   id        String   @id @default(uuid()) @db.Uuid
   key       String   @unique @db.VarChar(120)
@@ -49,6 +65,7 @@ model User {
   refreshTokens      RefreshToken[]
   auditLogs          AuditLog[]            @relation("AuditActor")
   idempotencyRecords IdempotencyRecord[]
+  organizationsOwned Organization[] @relation("OrganizationOwner")
 
   @@index([status, createdAt])
   @@map("users")
@@ -61,7 +78,12 @@ model Organization {
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
   members   OrganizationMember[]
+  venues    Venue[]
+  events    Event[]
+  ownerId   String?              @db.Uuid
+  owner     User?                @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
+  @@index([ownerId])
   @@map("organizations")
 }
 
@@ -126,4 +148,125 @@ model IdempotencyRecord {
   @@index([userId, expiresAt])
   @@index([expiresAt])
   @@map("idempotency_records")
+}
+
+model Venue {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  name           String         @db.VarChar(160)
+  address        String?        @db.VarChar(300)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections       VenueSection[]
+  seats          Seat[]
+  events         Event[]
+
+  @@index([organizationId, createdAt])
+  @@map("venues")
+}
+
+model VenueSection {
+  id        String  @id @default(uuid()) @db.Uuid
+  venueId   String  @db.Uuid
+  name      String  @db.VarChar(120)
+  sortOrder Int     @default(0)
+  venue     Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seats     Seat[]
+
+  @@unique([venueId, name])
+  @@index([venueId, sortOrder])
+  @@map("venue_sections")
+}
+
+model Seat {
+  id          String         @id @default(uuid()) @db.Uuid
+  venueId     String         @db.Uuid
+  sectionId   String         @db.Uuid
+  rowLabel    String         @db.VarChar(30)
+  seatNumber  Int
+  code        String         @db.VarChar(80)
+  venue       Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  section     VenueSection   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  allocations SeatAllocation[]
+
+  @@unique([venueId, code])
+  @@unique([sectionId, rowLabel, seatNumber])
+  @@index([venueId, sectionId])
+  @@map("seats")
+}
+
+model Event {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  venueId        String?       @db.Uuid
+  name           String        @db.VarChar(200)
+  slug           String        @unique @db.VarChar(220)
+  description    String?       @db.Text
+  timezone       String        @db.VarChar(64)
+  startAt        DateTime
+  endAt          DateTime
+  status         EventStatus   @default(DRAFT)
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  venue          Venue?        @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  sessions       EventSession[]
+  ticketTypes    TicketType[]
+
+  @@index([status, startAt])
+  @@index([organizationId, status, startAt])
+  @@map("events")
+}
+
+model EventSession {
+  id           String           @id @default(uuid()) @db.Uuid
+  eventId      String           @db.Uuid
+  name         String           @db.VarChar(160)
+  startAt      DateTime
+  endAt        DateTime
+  salesStartAt DateTime
+  salesEndAt   DateTime
+  event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  allocations  SeatAllocation[]
+
+  @@index([eventId, startAt])
+  @@index([salesStartAt, salesEndAt])
+  @@map("event_sessions")
+}
+
+model TicketType {
+  id            String           @id @default(uuid()) @db.Uuid
+  eventId       String           @db.Uuid
+  name          String           @db.VarChar(120)
+  description   String?          @db.Text
+  priceMinor    Int
+  currency      String           @default("VND") @db.Char(3)
+  capacity      Int
+  soldQuantity  Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  event         Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  allocations   SeatAllocation[]
+
+  @@unique([eventId, name])
+  @@index([eventId, priceMinor])
+  @@map("ticket_types")
+}
+
+model SeatAllocation {
+  id            String                @id @default(uuid()) @db.Uuid
+  eventSessionId String               @db.Uuid
+  seatId        String                @db.Uuid
+  ticketTypeId  String?               @db.Uuid
+  status        SeatAllocationStatus  @default(AVAILABLE)
+  eventSession  EventSession           @relation(fields: [eventSessionId], references: [id], onDelete: Cascade)
+  seat          Seat                   @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  ticketType    TicketType?            @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+
+  @@unique([eventSessionId, seatId])
+  @@index([eventSessionId, status])
+  @@index([ticketTypeId, status])
+  @@map("seat_allocations")
 }
