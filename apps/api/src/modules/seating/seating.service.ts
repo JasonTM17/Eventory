@@ -38,6 +38,13 @@ interface HoldResponse {
   expiresAt: string;
 }
 
+export interface OwnedHold {
+  holdId: string;
+  eventSessionId: string;
+  seatIds: string[];
+  expiresAt: string;
+}
+
 @Injectable()
 export class SeatingService implements OnModuleInit, OnModuleDestroy {
   private readonly ttlMs: number;
@@ -113,6 +120,74 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
           ticketTypeId: allocation.ticketTypeId,
         };
       }),
+    };
+  }
+
+  async assertOwnedHold(
+    eventSessionId: string,
+    userId: string,
+    seatIds: string[],
+    holdId: string,
+  ): Promise<OwnedHold> {
+    this.assertUuid(eventSessionId, 'EVENT_SESSION_INVALID');
+    this.assertUuid(holdId, 'HOLD_INVALID');
+    const normalizedSeatIds = this.normalizeSeatIds(seatIds);
+    const values = await this.redis.mget(
+      normalizedSeatIds.map((seatId) => seatHoldKey(eventSessionId, seatId)),
+    );
+    const holds = values.map((value) => this.parseHold(value));
+    if (holds.some((hold) => !hold || hold.expiresAt <= Date.now())) this.holdExpired();
+    if (
+      holds.some(
+        (hold) =>
+          hold?.userId !== userId ||
+          hold.holdId !== holdId ||
+          hold.eventSessionId !== eventSessionId,
+      )
+    ) {
+      throw this.holdOwnershipDenied();
+    }
+    const expiresAt = Math.min(...holds.map((hold) => hold?.expiresAt ?? Date.now()));
+    return {
+      holdId,
+      eventSessionId,
+      seatIds: normalizedSeatIds,
+      expiresAt: new Date(expiresAt).toISOString(),
+    };
+  }
+
+  async getHoldByToken(
+    eventSessionId: string,
+    userId: string,
+    seatIds: string[],
+    holdToken: string,
+  ): Promise<OwnedHold> {
+    this.assertUuid(eventSessionId, 'EVENT_SESSION_INVALID');
+    const normalizedSeatIds = this.normalizeSeatIds(seatIds);
+    const values = await this.redis.mget(
+      normalizedSeatIds.map((seatId) => seatHoldKey(eventSessionId, seatId)),
+    );
+    const holds = values.map((value) => this.parseHold(value));
+    if (holds.some((hold) => !hold || hold.expiresAt <= Date.now())) this.holdExpired();
+    if (
+      holds.some(
+        (hold) =>
+          hold?.userId !== userId ||
+          hold.token !== holdToken ||
+          hold.eventSessionId !== eventSessionId,
+      )
+    ) {
+      throw this.holdOwnershipDenied();
+    }
+    const first = holds[0];
+    if (!first) this.holdExpired();
+    return {
+      holdId: first.holdId,
+      eventSessionId,
+      seatIds: normalizedSeatIds,
+      expiresAt: new Date(
+        Math.min(...holds.map((hold) => hold?.expiresAt ?? Date.now())),
+      ).toISOString(),
     };
   }
 

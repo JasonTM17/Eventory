@@ -15,6 +15,7 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { VenuesModule } from './modules/venues/venues.module.js';
 import { EventsModule } from './modules/events/events.module.js';
 import { SeatingModule } from './modules/seating/seating.module.js';
+import { BookingsModule } from './modules/bookings/bookings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
@@ -43,6 +44,7 @@ import { HealthModule } from './modules/health/health.module.js';
     VenuesModule,
     EventsModule,
     SeatingModule,
+    BookingsModule,
     HealthModule,
   ],
   providers: [

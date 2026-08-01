@@ -354,6 +354,7 @@ model BookingItem {
   id               String         @id @default(uuid()) @db.Uuid
   bookingId        String         @db.Uuid
   seatAllocationId String         @db.Uuid
+  seatId           String         @db.Uuid
   ticketTypeId     String?        @db.Uuid
   ticketTypeName   String         @db.VarChar(120)
   seatCode         String?        @db.VarChar(80)
