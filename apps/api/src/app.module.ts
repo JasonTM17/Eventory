@@ -1,18 +1,23 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { parseEnvironment } from '@eventory/config';
 import { ApiExceptionFilter } from './common/http/api-exception.filter.js';
 import { RequestIdMiddleware } from './common/http/request-id.middleware.js';
+import { AuthModule } from './common/auth/auth.module.js';
+import { AuthGuard } from './common/auth/auth.guard.js';
+import { RolesGuard } from './common/auth/roles.guard.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
 import { RedisModule } from './infrastructure/redis/redis.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [() => parseEnvironment()],
       validate: (config) => parseEnvironment(config),
     }),
     LoggerModule.forRoot({
@@ -26,11 +31,17 @@ import { HealthModule } from './modules/health/health.module.js';
         ],
       },
     }),
+    AuthModule,
     DatabaseModule,
     RedisModule,
+    IdentityModule,
     HealthModule,
   ],
-  providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
+  providers: [
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
