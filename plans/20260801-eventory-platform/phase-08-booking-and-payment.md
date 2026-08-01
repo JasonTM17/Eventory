@@ -1,8 +1,8 @@
 ---
 phase: 8
 title: 'Booking and payment'
-status: pending
-effort: ''
+status: completed
+effort: 1 session
 ---
 
 # Phase 8: Booking and payment
@@ -49,9 +49,16 @@ Booking confirmation runs one PostgreSQL transaction: validate idempotency key a
 
 ## Success Criteria
 
-- [ ] Price and fee calculations use integer minor units/decimal, never float.
-- [ ] Payment webhook signatures and provider references are validated.
-- [ ] Concurrent confirmation cannot oversell a seat.
+- [x] Price and fee calculations use integer minor units/decimal, never float.
+- [x] Payment webhook signatures and provider references are validated.
+- [x] Concurrent confirmation cannot oversell a seat.
+
+## Verification
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @eventory/api exec node --require ts-node/register --test test/booking.e2e.test.ts`
+- `pnpm --filter @eventory/web build`
 
 ## Dependency map
 

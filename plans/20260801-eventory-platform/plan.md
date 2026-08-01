@@ -67,7 +67,7 @@ Phases are sequential because schema and contract changes are dependencies. Ever
 | 5     | [Event management](./phase-05-event-management.md)                         | Completed |
 | 6     | [Frontend foundation](./phase-06-frontend-foundation.md)                   | Completed |
 | 7     | [Seat reservation](./phase-07-seat-reservation.md)                         | Completed |
-| 8     | [Booking and payment](./phase-08-booking-and-payment.md)                   | Pending   |
+| 8     | [Booking and payment](./phase-08-booking-and-payment.md)                   | Completed |
 | 9     | [Outbox and notifications](./phase-09-outbox-and-notifications.md)         | Pending   |
 | 10    | [Tickets and check-in](./phase-10-tickets-and-check-in.md)                 | Pending   |
 | 11    | [Analytics and administration](./phase-11-analytics-and-administration.md) | Pending   |
