@@ -1,0 +1,81 @@
+name: Main validation and artifacts
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+  DATABASE_URL: postgresql://eventory:eventory@127.0.0.1:5432/eventory?schema=public
+  REDIS_URL: redis://127.0.0.1:6379
+  MAILPIT_HOST: 127.0.0.1
+  MAILPIT_PORT: 1025
+  OUTBOX_WORKER_ENABLED: 'false'
+  SESSION_SECRET: eventory-ci-session-secret-change-me
+  QR_SIGNING_SECRET: eventory-ci-qr-signing-secret-change-me
+  MOCK_PAYMENT_WEBHOOK_SECRET: eventory-ci-mock-payment-secret-change-me
+  METRICS_TOKEN: ''
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eventory
+          POSTGRES_PASSWORD: eventory
+          POSTGRES_DB: eventory
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U eventory -d eventory"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+      mailpit:
+        image: axllent/mailpit:v1.20.3
+        ports: ['1025:1025']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.0.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm --filter @eventory/api db:validate
+      - run: pnpm --filter @eventory/api db:migrate
+      - run: pnpm --filter @eventory/api test
+      - run: pnpm --filter @eventory/web build
+      - run: pnpm audit --prod
+      - run: docker compose config --quiet
+      - run: docker build --file apps/api/Dockerfile --tag eventory-api:${{ github.sha }} .
+      - run: docker build --file apps/web/Dockerfile --tag eventory-web:${{ github.sha }} .
+      - name: Export versioned image artifacts
+        run: |
+          mkdir -p artifacts
+          docker save eventory-api:${{ github.sha }} | gzip > artifacts/eventory-api-${{ github.sha }}.tar.gz
+          docker save eventory-web:${{ github.sha }} | gzip > artifacts/eventory-web-${{ github.sha }}.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eventory-images-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
