@@ -46,10 +46,10 @@ describe('organization authorization', () => {
     const response = await request(app.getHttpServer())
       .post('/api/v1/organizations')
       .set('Cookie', ownerCookie)
-      .send({ name: 'Eventory Makers' })
+      .send({ name: `Eventory Makers ${ownerEmail.split('@')[0]}` })
       .expect(201);
     organizationId = response.body.id as string;
-    assert.equal(response.body.slug, 'eventory-makers');
+    assert.match(response.body.slug, /^eventory-makers-owner-/);
 
     const user = await prisma.user.findUniqueOrThrow({ where: { id: ownerId } });
     assert.equal(user.role, 'ORGANIZER');

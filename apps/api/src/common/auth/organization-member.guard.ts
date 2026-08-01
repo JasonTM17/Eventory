@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { OrganizationMemberRole } from '../../generated/prisma/client.js';
+import { OrganizationMemberRole, UserRole } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infrastructure/database/prisma.service.js';
 import { ORGANIZATION_ROLES_METADATA } from './auth.constants.js';
 import type { RequestWithUser } from './auth.types.js';
@@ -19,6 +19,8 @@ export class OrganizationMemberGuard implements CanActivate {
     const user = request.user;
     const organizationId = request.params.organizationId;
     if (!user || !organizationId) throw this.accessDenied();
+    if (user.role === UserRole.ADMIN) return true;
+    if (!this.isUuid(organizationId)) throw this.accessDenied();
 
     const membership = await this.prisma.organizationMember.findUnique({
       where: { organizationId_userId: { organizationId, userId: user.id } },
@@ -39,5 +41,9 @@ export class OrganizationMemberGuard implements CanActivate {
       code: 'ORGANIZATION_ACCESS_DENIED',
       message: 'You do not have access to this organization',
     });
+  }
+
+  private isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
   }
 }

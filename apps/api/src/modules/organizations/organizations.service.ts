@@ -24,7 +24,9 @@ export class OrganizationsService {
     const slug = this.slugify(name);
     try {
       const organization = await this.prisma.$transaction(async (tx) => {
-        const created = await tx.organization.create({ data: { name, slug } });
+        const created = await tx.organization.create({
+          data: { name, slug, ownerId: input.ownerId },
+        });
         await tx.organizationMember.create({
           data: {
             organizationId: created.id,
@@ -53,6 +55,25 @@ export class OrganizationsService {
         });
       }
       throw error;
+    }
+  }
+
+  async assertAccess(
+    organizationId: string,
+    userId: string,
+    roles?: OrganizationMemberRole[],
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    if (user?.role === UserRole.ADMIN) return;
+    const membership = await this.prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: { role: true },
+    });
+    if (!membership || (roles?.length && !roles.includes(membership.role))) {
+      throw this.accessDenied();
     }
   }
 
