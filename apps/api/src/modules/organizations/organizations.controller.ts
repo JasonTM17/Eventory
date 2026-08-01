@@ -20,6 +20,15 @@ export class OrganizationsController {
     return this.organizations.create({ name: body.name, ownerId: user.id });
   }
 
+  @Get()
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<
+    Array<{ id: string; name: string; slug: string; membership: OrganizationMemberRole }>
+  > {
+    return this.organizations.listForUser(user.id);
+  }
+
   @Get(':organizationId')
   @UseGuards(OrganizationMemberGuard)
   get(

@@ -53,6 +53,13 @@ describe('organization authorization', () => {
 
     const user = await prisma.user.findUniqueOrThrow({ where: { id: ownerId } });
     assert.equal(user.role, 'ORGANIZER');
+
+    const listed = await request(app.getHttpServer())
+      .get('/api/v1/organizations')
+      .set('Cookie', ownerCookie)
+      .expect(200);
+    assert.equal(listed.body[0].id, organizationId);
+    assert.equal(listed.body[0].membership, 'OWNER');
   });
 
   it('allows the owner to read the organization and denies a foreign user', async () => {

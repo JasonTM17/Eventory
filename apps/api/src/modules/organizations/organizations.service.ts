@@ -91,6 +91,24 @@ export class OrganizationsService {
     };
   }
 
+  async listForUser(
+    userId: string,
+  ): Promise<
+    Array<{ id: string; name: string; slug: string; membership: OrganizationMemberRole }>
+  > {
+    const organizations = await this.prisma.organization.findMany({
+      where: { members: { some: { userId } } },
+      orderBy: { name: 'asc' },
+      include: { members: { where: { userId }, select: { role: true } } },
+    });
+    return organizations.flatMap((organization) => {
+      const membership = organization.members[0]?.role;
+      return membership
+        ? [{ id: organization.id, name: organization.name, slug: organization.slug, membership }]
+        : [];
+    });
+  }
+
   async addMember(input: {
     organizationId: string;
     actorUserId: string;
