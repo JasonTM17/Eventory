@@ -34,3 +34,11 @@ locally or commit a local `.env` file.
 Pull requests must pass the same format, lint, typecheck, Prisma migration,
 API test, web build, audit, Compose validation, and image-build checks defined
 in `.github/workflows/pull-request.yml`.
+
+## Line endings
+
+Text files are normalized and checked out as LF through `.gitattributes`, so
+local formatting checks match Linux CI. A Windows checkout created before that
+policy may still contain CRLF files after pulling the update. If
+`pnpm format:check` reports widespread line-ending differences, keep any
+uncommitted work and use a fresh clone or worktree at the current commit.
