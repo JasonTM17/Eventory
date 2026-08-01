@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
   BookingStatus,
@@ -54,6 +55,7 @@ export class BookingsService {
     private readonly prisma: PrismaService,
     private readonly seating: SeatingService,
     private readonly payments: PaymentsService,
+    private readonly config: ConfigService,
   ) {}
 
   async create(
@@ -296,6 +298,8 @@ export class BookingsService {
             userId: booking.userId,
             eventSessionId: booking.eventSessionId,
             publicCode: this.publicCode('TKT'),
+            qrNonce: randomBytes(24).toString('base64url'),
+            qrKeyVersion: this.config.getOrThrow<number>('QR_KEY_VERSION'),
           })),
         });
         const confirmed = await tx.booking.update({
