@@ -80,3 +80,33 @@ export interface SeatHoldResponse {
   seatIds: string[];
   expiresAt: string;
 }
+
+export interface BookingItemSummary {
+  id: string;
+  seatCode: string | null;
+  ticketTypeName: string;
+  priceMinor: number;
+  currency: string;
+}
+
+export interface BookingSummary {
+  id: string;
+  publicCode: string;
+  eventSessionId: string;
+  status: 'PENDING' | 'CONFIRMED' | 'PAYMENT_FAILED' | 'EXPIRED' | 'CANCELLED' | 'REFUNDED';
+  currency: string;
+  subtotalMinor: number;
+  feeMinor: number;
+  totalMinor: number;
+  expiresAt: string;
+  confirmedAt: string | null;
+  items: BookingItemSummary[];
+  payment: {
+    providerReference: string;
+    status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED' | 'REFUNDED';
+    amountMinor: number;
+    currency: string;
+    clientSecret: string | null;
+    expiresAt: string | null;
+  } | null;
+}
