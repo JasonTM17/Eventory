@@ -49,3 +49,34 @@ export interface OrganizationSummary {
   slug: string;
   membership: 'OWNER' | 'ADMIN' | 'STAFF';
 }
+
+export interface SeatAvailability {
+  seatId: string;
+  sectionId: string;
+  sectionName: string;
+  rowLabel: string;
+  seatNumber: number;
+  code: string;
+  status: 'available' | 'blocked' | 'sold' | 'held';
+  holdExpiresAt: string | null;
+  ticketTypeId: string | null;
+}
+
+export interface SeatAvailabilityResponse {
+  eventSessionId: string;
+  event: {
+    id: string;
+    name: string;
+    status: EventSummary['status'] | 'DRAFT' | 'CANCELLED';
+    timezone: string;
+  };
+  seats: SeatAvailability[];
+}
+
+export interface SeatHoldResponse {
+  holdId: string;
+  holdToken: string;
+  eventSessionId: string;
+  seatIds: string[];
+  expiresAt: string;
+}

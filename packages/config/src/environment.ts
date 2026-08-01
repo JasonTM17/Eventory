@@ -16,6 +16,7 @@ const environmentSchema = z.object({
   QR_SIGNING_SECRET: z.string().min(32).default(localQrSecret),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
   REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().min(300).max(31_536_000).default(2_592_000),
+  SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().min(30).max(1_800).default(600),
   MAILPIT_HOST: z.string().min(1).default('localhost'),
   MAILPIT_PORT: z.coerce.number().int().min(1).max(65_535).default(1_025),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
