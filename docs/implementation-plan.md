@@ -2,6 +2,8 @@
 
 The executable plan is maintained by the CK plan CLI at [`plans/20260801-eventory-platform/plan.md`](../plans/20260801-eventory-platform/plan.md). It is intentionally separate from this short index so phase status remains machine-readable.
 
+The plan is currently in progress on `feature/eventory-platform`; phase 1 has completed its workspace, tooling, architecture, and environment slices.
+
 ## Goal
 
 Deliver a local, testable, production-oriented ticketing platform from an empty checkout: organizer event publishing, attendee discovery and booking, race-safe seat holds, simulated payments, signed QR tickets, organizer check-in, asynchronous notifications, analytics/admin surfaces, security/observability, Docker, CI, and complete operational documentation.
