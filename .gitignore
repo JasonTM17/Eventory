@@ -20,6 +20,7 @@ temp/
 
 # Local infrastructure volumes and reports
 infrastructure/volumes/
+**/src/generated/
 plans/**/reports/*.json
 
 # Editor/OS files
