@@ -63,7 +63,7 @@ Phases are sequential because schema and contract changes are dependencies. Ever
 | 1     | [Repository foundation](./phase-01-repository-foundation.md)               | Completed |
 | 2     | [Local infrastructure](./phase-02-local-infrastructure.md)                 | Completed |
 | 3     | [NestJS foundation](./phase-03-nestjs-foundation.md)                       | Completed |
-| 4     | [Identity and authorization](./phase-04-identity-and-authorization.md)     | Pending   |
+| 4     | [Identity and authorization](./phase-04-identity-and-authorization.md)     | Completed |
 | 5     | [Event management](./phase-05-event-management.md)                         | Pending   |
 | 6     | [Frontend foundation](./phase-06-frontend-foundation.md)                   | Pending   |
 | 7     | [Seat reservation](./phase-07-seat-reservation.md)                         | Pending   |

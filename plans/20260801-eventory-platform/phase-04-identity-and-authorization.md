@@ -1,7 +1,7 @@
 ---
 phase: 4
-title: 'Identity and authorization'
-status: pending
+title: Identity and authorization
+status: completed
 effort: ''
 ---
 
