@@ -1,0 +1,51 @@
+# Eventory system architecture
+
+Eventory is a modular monolith: one NestJS API, one Next.js application, and
+replaceable integration adapters. The design keeps business invariants close
+to the PostgreSQL transaction while using Redis only for short-lived
+coordination.
+
+## Runtime topology
+
+```mermaid
+flowchart LR
+  browser[Browser] --> web[Next.js standalone]
+  web --> api[NestJS API]
+  scanner[Organizer scanner] --> api
+  api --> db[(PostgreSQL)]
+  api --> redis[(Redis holds)]
+  api --> mail[Mailpit or SMTP]
+  provider[Mock payment provider] -->|signed webhook| api
+  prometheus[Prometheus profile] -->|metrics token in production| api
+```
+
+See the [system overview](./architecture/system-overview.md), [component
+diagram](./architecture/component-diagram.md), [seat sequence](./architecture/seat-reservation-sequence.md),
+[payment sequence](./architecture/payment-sequence.md), and [check-in
+sequence](./architecture/check-in-sequence.md) for detailed flows.
+
+## Module boundaries
+
+Identity/authentication, organizations, venues, events, seating, bookings,
+payments, outbox, tickets, check-in, analytics, admin, health, and metrics are
+separate Nest modules. Controllers do not write tables directly. Shared
+contracts and UI primitives are framework-light packages.
+
+## State ownership
+
+| State                   | Owner                        | Invariant                                                |
+| ----------------------- | ---------------------------- | -------------------------------------------------------- |
+| Users/sessions/roles    | PostgreSQL + auth module     | Active user and rotating refresh family required         |
+| Seat availability/sales | PostgreSQL                   | Only a transaction marks an allocation sold              |
+| Active holds            | Redis                        | TTL, owner token, and atomic Lua acquisition             |
+| Payments/webhook replay | PostgreSQL                   | Provider event unique key and signed payload             |
+| Tickets/check-ins       | PostgreSQL                   | Opaque signed QR, conditional status update, unique scan |
+| Email side effects      | Outbox + notification tables | Claim lease, bounded retry, dedupe key                   |
+
+## Delivery topology
+
+Dockerfiles use dependency, build, and non-root runtime stages. Compose starts
+PostgreSQL, Redis, Mailpit, API, and web with health-gated dependencies. The
+optional `monitoring` profile adds Prometheus/Grafana for local observation.
+GitHub Actions repeat quality gates and build versioned image artifacts; no
+workflow deploys with production credentials.

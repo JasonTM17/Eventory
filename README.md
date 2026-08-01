@@ -4,7 +4,9 @@ Eventory is a production-oriented full-stack event ticketing platform. It is des
 
 ## Repository status
 
-The repository foundation is in place. Business modules are being implemented phase-by-phase from the [implementation plan](./docs/implementation-plan.md). The first two commits establish the pnpm/Turborepo workspace and strict TypeScript/ESLint/Prettier tooling; later phases add the runnable API, web app, and local infrastructure.
+The local release journey is implemented on the `feature/eventory-platform`
+branch. The phase plan, architecture records, security model, CI, Docker
+images, and operational runbooks are maintained alongside the code.
 
 ## Stack
 
@@ -20,27 +22,51 @@ The repository foundation is in place. Business modules are being implemented ph
 - pnpm 11 (`corepack enable` is recommended)
 - Docker Desktop for PostgreSQL, Redis, and Mailpit integration work
 
-## Current checks
+## Quick start
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
+docker compose up --build -d
+docker compose ps
+```
+
+Compose waits for PostgreSQL, Redis, and Mailpit, applies API migrations at
+startup, and exposes the web app at [http://localhost:3000](http://localhost:3000)
+and API at [http://localhost:4000/api/v1](http://localhost:4000/api/v1). Seed a
+deterministic demo after the stack is healthy:
+
+```bash
+pnpm db:seed
+```
+
+For host development, use `docker compose up -d postgres redis mailpit`, then
+`pnpm db:migrate` and `pnpm dev`. Copy `.env.example` to `.env` when changing
+ports or secrets. Never use the local defaults in production.
+
+## Quality gates
+
+```bash
 pnpm format:check
 pnpm lint
 pnpm typecheck
+pnpm --filter @eventory/api test
+pnpm --filter @eventory/web build
+pnpm audit --prod
+docker compose config --quiet
 ```
 
-The database and application start commands will be enabled as their phases land:
-
-```bash
-docker compose up -d postgres redis mailpit
-pnpm db:migrate
-pnpm db:seed
-pnpm dev
-```
+Enable local Prometheus/Grafana with
+`docker compose --profile monitoring up -d prometheus grafana`; see the
+[observability guide](./docs/architecture/observability.md).
 
 ## Architecture
 
 Read the [system overview](./docs/architecture/system-overview.md), [component boundaries](./docs/architecture/component-diagram.md), and [implementation plan](./docs/implementation-plan.md) before changing a module. Important trade-offs are recorded as ADRs under [`docs/adr`](./docs/adr).
+
+The concise [codebase summary](./docs/codebase-summary.md), [architecture
+guide](./docs/system-architecture.md), [code standards](./docs/code-standards.md),
+[PDR](./docs/project-overview-pdr.md), and [roadmap](./docs/project-roadmap.md)
+are useful onboarding entry points.
 
 ## Development rules
 

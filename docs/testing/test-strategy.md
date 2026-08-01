@@ -50,6 +50,9 @@ node --require ts-node/register --test test/check-in.e2e.test.ts
 
 - Test suites use unique email/slug prefixes and `concurrency: false` when
   they share database fixtures.
+- The API test script runs files sequentially because each suite owns a real
+  PostgreSQL/Redis application fixture; concurrency assertions remain explicit
+  inside the relevant suites.
 - Cleanup follows foreign-key order: dependent users/bookings/tickets first,
   then organizations and venues. Do not use `down --volumes` as a test helper.
 - Each concurrent scenario asserts both the winning result and all losing

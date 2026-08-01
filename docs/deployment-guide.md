@@ -1,16 +1,25 @@
 # Local deployment guide
 
-## Dependency services
+## Local full stack
 
-Copy `.env.example` to `.env` when you need overrides, then start the local dependency stack:
+Copy `.env.example` to `.env` when you need overrides, then start the complete
+stack:
 
 ```bash
-docker compose up -d postgres redis mailpit
+docker compose up --build -d
 pnpm wait:dependencies
 docker compose ps
 ```
 
-PostgreSQL is available at `localhost:5432`, Redis at `localhost:6379`, SMTP capture at `localhost:1025`, and the Mailpit UI at [http://localhost:8025](http://localhost:8025). The Compose file uses named volumes so a normal restart preserves local data.
+The web app is available at `localhost:3000`, API at `localhost:4000`,
+PostgreSQL at `localhost:5432`, Redis at `localhost:6379`, SMTP capture at
+`localhost:1025`, and Mailpit UI at [http://localhost:8025](http://localhost:8025).
+The API container applies migrations before serving. Run `pnpm db:seed` after
+readiness when a demo dataset is needed.
+
+For host development, start only dependencies and run `pnpm db:migrate`/`pnpm
+dev` from the repository. The optional monitoring profile is documented in
+the [observability guide](./architecture/observability.md).
 
 ## Stop and reset
 
@@ -28,3 +37,14 @@ Use `docker compose down --volumes` only when intentionally resetting the local 
 - `docker compose logs postgres redis mailpit` shows dependency logs.
 - If a port is already occupied, override the corresponding `*_PORT` value in `.env` and rerun `docker compose up -d`.
 - If the wait script fails, check Docker Desktop and run `docker compose up -d postgres redis mailpit` again.
+- If an API/web image fails to build, run `docker compose config --quiet`, check
+  available disk, and inspect the build output before pruning only recreatable
+  build cache.
+
+## CI and release artifacts
+
+Pull requests run the full quality matrix and build both images. The main
+workflow tags images with the commit SHA and uploads compressed image archives;
+it does not deploy or require production credentials. A deployment platform
+should inject `DATABASE_URL`, `REDIS_URL`, non-default session/QR/payment
+secrets, a production `METRICS_TOKEN`, and an explicit `CORS_ORIGINS` value.

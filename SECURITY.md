@@ -18,4 +18,10 @@ Do not open a public issue for a suspected secret, account takeover, authorizati
 - Keep QR payloads opaque, signed, session-bound, and free of personal data.
 - Never log passwords, refresh tokens, payment secrets, full QR signatures, or unnecessary PII.
 
-The complete threat model will live at [`docs/security/threat-model.md`](./docs/security/threat-model.md) when the hardening phase is complete.
+Read the complete [threat model](./docs/security/threat-model.md),
+[testing strategy](./docs/testing/test-strategy.md), and dependency outage
+[runbooks](./docs/runbooks/) before operating the stack.
+
+Before release, run `pnpm audit --prod`, the focused security tests, and the
+repository secret scan. Rotate any credential that appears in a log, image,
+branch, or CI artifact; do not paste the value into an issue.

@@ -26,4 +26,11 @@ Describe the behavior changed, the invariants protected, checks run, migration i
 
 ## Local services
 
-Use Docker Compose for PostgreSQL, Redis, and Mailpit once phase 2 is complete. Never use production credentials locally or commit a local `.env` file.
+Use Docker Compose for PostgreSQL, Redis, Mailpit, API, and web. `docker compose
+up --build` is the full-stack smoke path; `docker compose up -d postgres redis
+mailpit` is the lighter host-development path. Never use production credentials
+locally or commit a local `.env` file.
+
+Pull requests must pass the same format, lint, typecheck, Prisma migration,
+API test, web build, audit, Compose validation, and image-build checks defined
+in `.github/workflows/pull-request.yml`.
