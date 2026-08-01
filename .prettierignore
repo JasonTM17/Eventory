@@ -5,8 +5,11 @@ dist
 coverage
 pnpm-lock.yaml
 plans/templates
+plans/**/plan.md
 AGENTS.md
 CLAUDE.md
 .claude
 .codex
 .env.*
+.dockerignore
+*.sql
