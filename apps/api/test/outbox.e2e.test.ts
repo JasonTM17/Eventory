@@ -7,7 +7,6 @@ import { AppModule } from '../src/app.module.js';
 import { PrismaService } from '../src/infrastructure/database/prisma.service.js';
 import { OutboxService } from '../src/modules/outbox/outbox.service.js';
 
-process.env.MAILPIT_PORT = '11026';
 process.env.OUTBOX_WORKER_ENABLED = 'false';
 
 describe('transactional outbox', { concurrency: false }, () => {
