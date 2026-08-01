@@ -54,9 +54,38 @@ services:
     networks:
       - eventory
 
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ['monitoring']
+    command: ['--config.file=/etc/prometheus/prometheus.yml']
+    ports:
+      - '${PROMETHEUS_PORT:-9090}:9090'
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - eventory-prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - eventory
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    profiles: ['monitoring']
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-eventory-local-grafana-change-me}
+    ports:
+      - '${GRAFANA_PORT:-3001}:3000'
+    volumes:
+      - eventory-grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - eventory
+
 volumes:
   eventory-postgres-data:
   eventory-redis-data:
+  eventory-prometheus-data:
+  eventory-grafana-data:
 
 networks:
   eventory:
