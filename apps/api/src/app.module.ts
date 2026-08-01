@@ -5,6 +5,9 @@ import { LoggerModule } from 'nestjs-pino';
 import { parseEnvironment } from '@eventory/config';
 import { ApiExceptionFilter } from './common/http/api-exception.filter.js';
 import { RequestIdMiddleware } from './common/http/request-id.middleware.js';
+import { DatabaseModule } from './infrastructure/database/database.module.js';
+import { RedisModule } from './infrastructure/redis/redis.module.js';
+import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { RequestIdMiddleware } from './common/http/request-id.middleware.js';
         ],
       },
     }),
+    DatabaseModule,
+    RedisModule,
+    HealthModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
 })
