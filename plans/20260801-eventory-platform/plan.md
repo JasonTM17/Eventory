@@ -71,7 +71,7 @@ Phases are sequential because schema and contract changes are dependencies. Ever
 | 9     | [Outbox and notifications](./phase-09-outbox-and-notifications.md)         | Completed |
 | 10    | [Tickets and check-in](./phase-10-tickets-and-check-in.md)                 | Completed |
 | 11    | [Analytics and administration](./phase-11-analytics-and-administration.md) | Completed |
-| 12    | [Hardening](./phase-12-hardening.md)                                       | Pending   |
+| 12    | [Hardening](./phase-12-hardening.md)                                       | Completed |
 | 13    | [Delivery](./phase-13-delivery.md)                                         | Pending   |
 
 ## Dependencies

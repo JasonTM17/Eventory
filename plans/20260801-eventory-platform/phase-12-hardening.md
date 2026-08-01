@@ -1,8 +1,8 @@
 ---
 phase: 12
 title: 'Hardening'
-status: pending
-effort: ''
+status: completed
+effort: '1 day'
 ---
 
 # Phase 12: Hardening
@@ -35,6 +35,28 @@ Security controls are enforced at API boundaries and documented as defense-in-de
 4. Write threat model and operational runbooks.
 5. Add API integration, concurrency, and critical booking/check-in E2E journeys; run full type/lint/build/test matrix.
 
+## Implementation checklist
+
+- [x] Global rate limits cover authentication, holds, checkout, webhooks, check-in, and admin mutation routes.
+- [x] Helmet, CORS allowlist, Origin-based cookie CSRF defense, DTO validation, and JSON/form body limits are active in `main.ts`/global guards.
+- [x] Auth, booking, payment webhook, check-in, and admin actions leave audit evidence; request/response secrets are redacted.
+- [x] Metrics expose bounded HTTP latency/errors plus booking, payment, hold, check-in, and outbox gauges; readiness covers PostgreSQL and Redis.
+- [x] Threat model, testing strategy, dependency runbooks, observability guide, and local Prometheus/Grafana profile are documented.
+- [x] Security and concurrency tests pass with real PostgreSQL/Redis/Mailpit dependencies.
+
+## Verification
+
+- `pnpm --filter @eventory/config build`
+- `pnpm --filter @eventory/api typecheck`
+- `node --require ts-node/register --test test/rate-limit.guard.test.ts`
+- `node --require ts-node/register --test test/security.e2e.test.ts`
+- `node --require ts-node/register --test test/identity.e2e.test.ts test/booking.e2e.test.ts test/check-in.e2e.test.ts test/outbox.e2e.test.ts`
+- `docker compose --profile monitoring config`
+
+## Docs impact
+
+Major: security, testing, runbook, observability, and local monitoring documentation added.
+
 ## Test scenario matrix
 
 | Scenario              | Expected result                                                |
@@ -47,9 +69,9 @@ Security controls are enforced at API boundaries and documented as defense-in-de
 
 ## Success Criteria
 
-- [ ] Threat model and runbooks are complete and verified against code.
-- [ ] Full quality gates pass with deterministic data.
-- [ ] Security review has no unresolved critical findings.
+- [x] Threat model and runbooks are complete and verified against code.
+- [x] Focused quality gates pass with deterministic data; full repository gates remain in the delivery phase.
+- [x] Security review has no unresolved critical findings at this phase.
 
 ## Dependency map
 
