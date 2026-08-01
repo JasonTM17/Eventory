@@ -564,6 +564,143 @@ a:focus-visible {
     11px 'DM Mono',
     monospace;
 }
+.seat-map-card {
+  max-width: 920px;
+  margin: 0 auto;
+}
+.seat-map-card__header,
+.seat-map-card__footer,
+.hold-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.seat-map-card h2 {
+  margin: 9px 0 0;
+  font-size: 28px;
+  letter-spacing: -0.06em;
+}
+.seat-stage {
+  width: min(520px, 88%);
+  margin: 0 auto 34px;
+  border-radius: 50% 50% 8px 8px;
+  padding: 12px;
+  color: var(--muted);
+  background: #e8ebe5;
+  text-align: center;
+  font:
+    11px 'DM Mono',
+    monospace;
+  letter-spacing: 0.18em;
+}
+.seat-grid {
+  display: grid;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 0 10px;
+}
+.seat-row {
+  display: flex;
+  min-width: 440px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+.seat-row__label {
+  width: 24px;
+  color: var(--muted);
+  font:
+    12px 'DM Mono',
+    monospace;
+}
+.seat {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px 10px 6px 6px;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 12px;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border 0.15s ease;
+}
+.seat:hover:not(:disabled),
+.seat:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--ink);
+}
+.seat--selected {
+  border-color: var(--ink);
+  background: var(--green);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.seat--held,
+.seat--sold,
+.seat--blocked {
+  color: #a2aaa3;
+  background: #e3e6e0;
+  cursor: not-allowed;
+}
+.seat--held {
+  background: #fff0c7;
+  color: #856019;
+}
+.seat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 28px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.seat-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.seat-dot {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--paper);
+}
+.seat-dot--selected {
+  background: var(--green);
+  border-color: var(--ink);
+}
+.seat-dot--held {
+  background: #fff0c7;
+}
+.seat-dot--sold {
+  background: #e3e6e0;
+}
+.hold-banner {
+  border: 1px solid #cfe7af;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #f0f9e6;
+}
+.hold-banner strong,
+.hold-banner span {
+  display: block;
+}
+.hold-banner span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.seat-map-card__footer {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  color: var(--muted);
+  font:
+    12px 'DM Mono',
+    monospace;
+}
 @media (max-width: 800px) {
   .ui-container {
     width: min(100% - 32px, 620px);

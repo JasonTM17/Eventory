@@ -79,9 +79,11 @@ export default async function EventDetailPage({
             ) : (
               <p className="empty-state">Tickets are not on sale yet.</p>
             )}
-            <Link href="/login">
-              <Button style={{ width: '100%', marginTop: 18 }}>Continue to seats</Button>
-            </Link>
+            {event.sessions[0] ? (
+              <Link href={`/events/${event.slug}/seats/${event.sessions[0].id}`}>
+                <Button style={{ width: '100%', marginTop: 18 }}>Continue to seats</Button>
+              </Link>
+            ) : null}
           </Card>
         </div>
       </Container>
