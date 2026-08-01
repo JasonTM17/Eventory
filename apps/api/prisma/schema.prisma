@@ -42,6 +42,49 @@ enum SeatAllocationStatus {
   SOLD
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAYMENT_FAILED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  MOCK
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum PaymentEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+}
+
+enum TicketStatus {
+  ISSUED
+  CHECKED_IN
+  VOID
+  REFUNDED
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+  DEAD
+}
+
 model SystemMetadata {
   id        String   @id @default(uuid()) @db.Uuid
   key       String   @unique @db.VarChar(120)
@@ -63,9 +106,11 @@ model User {
   updatedAt          DateTime             @updatedAt
   organizations      OrganizationMember[]
   refreshTokens      RefreshToken[]
-  auditLogs          AuditLog[]            @relation("AuditActor")
+  auditLogs          AuditLog[]           @relation("AuditActor")
   idempotencyRecords IdempotencyRecord[]
-  organizationsOwned Organization[] @relation("OrganizationOwner")
+  organizationsOwned Organization[]       @relation("OrganizationOwner")
+  bookings           Booking[]
+  tickets            Ticket[]
 
   @@index([status, createdAt])
   @@map("users")
@@ -88,13 +133,13 @@ model Organization {
 }
 
 model OrganizationMember {
-  id             String                   @id @default(uuid()) @db.Uuid
-  organizationId String                   @db.Uuid
-  userId         String                   @db.Uuid
-  role           OrganizationMemberRole   @default(STAFF)
-  createdAt      DateTime                 @default(now())
-  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @db.Uuid
+  userId         String                 @db.Uuid
+  role           OrganizationMemberRole @default(STAFF)
+  createdAt      DateTime               @default(now())
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
   @@index([userId, role])
@@ -102,15 +147,15 @@ model OrganizationMember {
 }
 
 model RefreshToken {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @db.Uuid
-  tokenHash  String    @unique @db.VarChar(128)
-  familyId   String    @db.Uuid
-  expiresAt  DateTime
-  usedAt     DateTime?
-  revokedAt  DateTime?
-  createdAt  DateTime  @default(now())
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique @db.VarChar(128)
+  familyId  String    @db.Uuid
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, revokedAt])
   @@index([familyId, revokedAt])
@@ -118,15 +163,15 @@ model RefreshToken {
 }
 
 model AuditLog {
-  id           String    @id @default(uuid()) @db.Uuid
-  actorUserId  String?   @db.Uuid
-  action       String    @db.VarChar(120)
-  resourceType String    @db.VarChar(80)
-  resourceId   String?   @db.Uuid
+  id           String   @id @default(uuid()) @db.Uuid
+  actorUserId  String?  @db.Uuid
+  action       String   @db.VarChar(120)
+  resourceType String   @db.VarChar(80)
+  resourceId   String?  @db.Uuid
   metadata     Json
-  ipAddress    String?   @db.VarChar(64)
-  createdAt    DateTime  @default(now())
-  actor        User?     @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  ipAddress    String?  @db.VarChar(64)
+  createdAt    DateTime @default(now())
+  actor        User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@index([actorUserId, createdAt])
   @@index([resourceType, resourceId, createdAt])
@@ -134,15 +179,15 @@ model AuditLog {
 }
 
 model IdempotencyRecord {
-  id             String    @id @default(uuid()) @db.Uuid
-  scope          String    @db.VarChar(120)
-  key            String    @db.VarChar(255)
-  userId         String?   @db.Uuid
+  id             String   @id @default(uuid()) @db.Uuid
+  scope          String   @db.VarChar(120)
+  key            String   @db.VarChar(255)
+  userId         String?  @db.Uuid
   responseStatus Int
   responseBody   Json
   expiresAt      DateTime
-  createdAt      DateTime  @default(now())
-  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([scope, key])
   @@index([userId, expiresAt])
@@ -167,11 +212,11 @@ model Venue {
 }
 
 model VenueSection {
-  id        String  @id @default(uuid()) @db.Uuid
-  venueId   String  @db.Uuid
-  name      String  @db.VarChar(120)
-  sortOrder Int     @default(0)
-  venue     Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  id        String @id @default(uuid()) @db.Uuid
+  venueId   String @db.Uuid
+  name      String @db.VarChar(120)
+  sortOrder Int    @default(0)
+  venue     Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
   seats     Seat[]
 
   @@unique([venueId, name])
@@ -180,14 +225,14 @@ model VenueSection {
 }
 
 model Seat {
-  id          String         @id @default(uuid()) @db.Uuid
-  venueId     String         @db.Uuid
-  sectionId   String         @db.Uuid
-  rowLabel    String         @db.VarChar(30)
+  id          String           @id @default(uuid()) @db.Uuid
+  venueId     String           @db.Uuid
+  sectionId   String           @db.Uuid
+  rowLabel    String           @db.VarChar(30)
   seatNumber  Int
-  code        String         @db.VarChar(80)
-  venue       Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  section     VenueSection   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  code        String           @db.VarChar(80)
+  venue       Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  section     VenueSection     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   allocations SeatAllocation[]
 
   @@unique([venueId, code])
@@ -197,21 +242,21 @@ model Seat {
 }
 
 model Event {
-  id             String        @id @default(uuid()) @db.Uuid
-  organizationId String        @db.Uuid
-  venueId        String?       @db.Uuid
-  name           String        @db.VarChar(200)
-  slug           String        @unique @db.VarChar(220)
-  description    String?       @db.Text
-  timezone       String        @db.VarChar(64)
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  venueId        String?        @db.Uuid
+  name           String         @db.VarChar(200)
+  slug           String         @unique @db.VarChar(220)
+  description    String?        @db.Text
+  timezone       String         @db.VarChar(64)
   startAt        DateTime
   endAt          DateTime
-  status         EventStatus   @default(DRAFT)
+  status         EventStatus    @default(DRAFT)
   publishedAt    DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  venue          Venue?        @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  venue          Venue?         @relation(fields: [venueId], references: [id], onDelete: SetNull)
   sessions       EventSession[]
   ticketTypes    TicketType[]
 
@@ -230,6 +275,8 @@ model EventSession {
   salesEndAt   DateTime
   event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   allocations  SeatAllocation[]
+  bookings     Booking[]
+  tickets      Ticket[]
 
   @@index([eventId, startAt])
   @@index([salesStartAt, salesEndAt])
@@ -237,18 +284,19 @@ model EventSession {
 }
 
 model TicketType {
-  id            String           @id @default(uuid()) @db.Uuid
-  eventId       String           @db.Uuid
-  name          String           @db.VarChar(120)
-  description   String?          @db.Text
-  priceMinor    Int
-  currency      String           @default("VND") @db.Char(3)
-  capacity      Int
-  soldQuantity  Int              @default(0)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  event         Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  allocations   SeatAllocation[]
+  id           String           @id @default(uuid()) @db.Uuid
+  eventId      String           @db.Uuid
+  name         String           @db.VarChar(120)
+  description  String?          @db.Text
+  priceMinor   Int
+  currency     String           @default("VND") @db.Char(3)
+  capacity     Int
+  soldQuantity Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  allocations  SeatAllocation[]
+  bookingItems BookingItem[]
 
   @@unique([eventId, name])
   @@index([eventId, priceMinor])
@@ -256,17 +304,145 @@ model TicketType {
 }
 
 model SeatAllocation {
-  id            String                @id @default(uuid()) @db.Uuid
+  id             String               @id @default(uuid()) @db.Uuid
   eventSessionId String               @db.Uuid
-  seatId        String                @db.Uuid
-  ticketTypeId  String?               @db.Uuid
-  status        SeatAllocationStatus  @default(AVAILABLE)
-  eventSession  EventSession           @relation(fields: [eventSessionId], references: [id], onDelete: Cascade)
-  seat          Seat                   @relation(fields: [seatId], references: [id], onDelete: Cascade)
-  ticketType    TicketType?            @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  seatId         String               @db.Uuid
+  ticketTypeId   String?              @db.Uuid
+  status         SeatAllocationStatus @default(AVAILABLE)
+  eventSession   EventSession         @relation(fields: [eventSessionId], references: [id], onDelete: Cascade)
+  seat           Seat                 @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  ticketType     TicketType?          @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  bookingItems   BookingItem[]
 
   @@unique([eventSessionId, seatId])
   @@index([eventSessionId, status])
   @@index([ticketTypeId, status])
   @@map("seat_allocations")
+}
+
+model Booking {
+  id             String        @id @default(uuid()) @db.Uuid
+  publicCode     String        @unique @db.VarChar(32)
+  userId         String        @db.Uuid
+  eventSessionId String        @db.Uuid
+  status         BookingStatus @default(PENDING)
+  currency       String        @db.Char(3)
+  subtotalMinor  Int
+  feeMinor       Int           @default(0)
+  totalMinor     Int
+  expiresAt      DateTime
+  confirmedAt    DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventSession   EventSession  @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  items          BookingItem[]
+  payment        Payment?
+  tickets        Ticket[]
+  outboxEvents   OutboxEvent[]
+
+  @@index([userId, createdAt])
+  @@index([eventSessionId, status, createdAt])
+  @@index([status, expiresAt])
+  @@map("bookings")
+}
+
+model BookingItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  bookingId        String         @db.Uuid
+  seatAllocationId String         @db.Uuid
+  ticketTypeId     String?        @db.Uuid
+  ticketTypeName   String         @db.VarChar(120)
+  seatCode         String?        @db.VarChar(80)
+  priceMinor       Int
+  currency         String         @db.Char(3)
+  createdAt        DateTime       @default(now())
+  booking          Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  seatAllocation   SeatAllocation @relation(fields: [seatAllocationId], references: [id], onDelete: Restrict)
+  ticketType       TicketType?    @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  ticket           Ticket?
+
+  @@unique([bookingId, seatAllocationId])
+  @@index([seatAllocationId])
+  @@map("booking_items")
+}
+
+model Payment {
+  id                String          @id @default(uuid()) @db.Uuid
+  bookingId         String          @unique @db.Uuid
+  provider          PaymentProvider
+  providerReference String          @unique @db.VarChar(160)
+  status            PaymentStatus   @default(PENDING)
+  amountMinor       Int
+  currency          String          @db.Char(3)
+  clientSecret      String?         @db.VarChar(255)
+  expiresAt         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  booking           Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  events            PaymentEvent[]
+
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+model PaymentEvent {
+  id              String             @id @default(uuid()) @db.Uuid
+  paymentId       String             @db.Uuid
+  provider        PaymentProvider
+  providerEventId String             @db.VarChar(160)
+  eventType       String             @db.VarChar(80)
+  status          PaymentEventStatus @default(RECEIVED)
+  payload         Json
+  receivedAt      DateTime           @default(now())
+  processedAt     DateTime?
+  payment         Payment            @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerEventId])
+  @@index([paymentId, receivedAt])
+  @@map("payment_events")
+}
+
+model Ticket {
+  id             String       @id @default(uuid()) @db.Uuid
+  bookingId      String       @db.Uuid
+  bookingItemId  String       @unique @db.Uuid
+  userId         String       @db.Uuid
+  eventSessionId String       @db.Uuid
+  publicCode     String       @unique @db.VarChar(40)
+  status         TicketStatus @default(ISSUED)
+  issuedAt       DateTime     @default(now())
+  checkedInAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  booking        Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingItem    BookingItem  @relation(fields: [bookingItemId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventSession   EventSession @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([eventSessionId, status])
+  @@map("tickets")
+}
+
+model OutboxEvent {
+  id            String       @id @default(uuid()) @db.Uuid
+  topic         String       @db.VarChar(120)
+  aggregateType String       @db.VarChar(80)
+  aggregateId   String       @db.Uuid
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime     @default(now())
+  processedAt   DateTime?
+  lastError     String?      @db.VarChar(500)
+  createdAt     DateTime     @default(now())
+  bookingId     String?      @db.Uuid
+  booking       Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([aggregateType, aggregateId, createdAt])
+  @@index([bookingId, topic])
+  @@map("outbox_events")
 }
