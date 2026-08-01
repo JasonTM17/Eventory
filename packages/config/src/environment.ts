@@ -15,6 +15,7 @@ const environmentSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   SESSION_SECRET: z.string().min(32).default(localSessionSecret),
   QR_SIGNING_SECRET: z.string().min(32).default(localQrSecret),
+  QR_KEY_VERSION: z.coerce.number().int().min(1).max(100).default(1),
   MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(32).default(localMockPaymentSecret),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
   REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().min(300).max(31_536_000).default(2_592_000),

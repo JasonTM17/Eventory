@@ -123,6 +123,7 @@ model User {
   organizationsOwned Organization[]       @relation("OrganizationOwner")
   bookings           Booking[]
   tickets            Ticket[]
+  ticketCheckIns     TicketCheckIn[] @relation("TicketCheckInScanner")
 
   @@index([status, createdAt])
   @@map("users")
@@ -289,6 +290,7 @@ model EventSession {
   allocations  SeatAllocation[]
   bookings     Booking[]
   tickets      Ticket[]
+  checkIns     TicketCheckIn[]
 
   @@index([eventId, startAt])
   @@index([salesStartAt, salesEndAt])
@@ -427,6 +429,8 @@ model Ticket {
   userId         String       @db.Uuid
   eventSessionId String       @db.Uuid
   publicCode     String       @unique @db.VarChar(40)
+  qrNonce        String       @unique @default(uuid()) @db.VarChar(80)
+  qrKeyVersion   Int          @default(1)
   status         TicketStatus @default(ISSUED)
   issuedAt       DateTime     @default(now())
   checkedInAt    DateTime?
@@ -436,10 +440,26 @@ model Ticket {
   bookingItem    BookingItem  @relation(fields: [bookingItemId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventSession   EventSession @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  checkIns       TicketCheckIn[]
 
   @@index([userId, createdAt])
   @@index([eventSessionId, status])
   @@map("tickets")
+}
+
+model TicketCheckIn {
+  id             String       @id @default(uuid()) @db.Uuid
+  ticketId       String       @unique @db.Uuid
+  eventSessionId String       @db.Uuid
+  scannerUserId  String?      @db.Uuid
+  checkedInAt    DateTime     @default(now())
+  ticket         Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  eventSession   EventSession @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  scanner        User?        @relation("TicketCheckInScanner", fields: [scannerUserId], references: [id], onDelete: SetNull)
+
+  @@index([eventSessionId, checkedInAt])
+  @@index([scannerUserId, checkedInAt])
+  @@map("ticket_check_ins")
 }
 
 model OutboxEvent {
