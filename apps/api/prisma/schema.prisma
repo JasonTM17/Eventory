@@ -454,6 +454,7 @@ model OutboxEvent {
   processedAt   DateTime?
   lastError     String?                @db.VarChar(500)
   createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
   bookingId     String?                @db.Uuid
   booking       Booking?               @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   notifications NotificationDelivery[]
