@@ -69,7 +69,7 @@ Phases are sequential because schema and contract changes are dependencies. Ever
 | 7     | [Seat reservation](./phase-07-seat-reservation.md)                         | Completed |
 | 8     | [Booking and payment](./phase-08-booking-and-payment.md)                   | Completed |
 | 9     | [Outbox and notifications](./phase-09-outbox-and-notifications.md)         | Completed |
-| 10    | [Tickets and check-in](./phase-10-tickets-and-check-in.md)                 | Pending   |
+| 10    | [Tickets and check-in](./phase-10-tickets-and-check-in.md)                 | Completed |
 | 11    | [Analytics and administration](./phase-11-analytics-and-administration.md) | Pending   |
 | 12    | [Hardening](./phase-12-hardening.md)                                       | Pending   |
 | 13    | [Delivery](./phase-13-delivery.md)                                         | Pending   |

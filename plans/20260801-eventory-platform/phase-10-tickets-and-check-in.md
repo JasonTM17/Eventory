@@ -1,8 +1,8 @@
 ---
 phase: 10
 title: 'Tickets and check-in'
-status: pending
-effort: ''
+status: completed
+effort: 1 session
 ---
 
 # Phase 10: Tickets and check-in
@@ -49,9 +49,17 @@ Ticket payload uses version, random ticket code, event session ID, nonce, key ve
 
 ## Success Criteria
 
-- [ ] Signed QR verification is covered by unit and API tests.
-- [ ] Database uniqueness wins concurrent check-in races.
-- [ ] Offline mode is documented as future work, not falsely implied as supported.
+- [x] Signed QR verification is covered by unit and API tests.
+- [x] Database uniqueness wins concurrent check-in races.
+- [x] Offline mode is documented as future work, not falsely implied as supported.
+
+## Verification
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm --filter @eventory/api exec node --require ts-node/register --test test/ticket-qr.test.ts`
+- `pnpm --filter @eventory/api exec node --require ts-node/register --test test/check-in.e2e.test.ts`
+- `pnpm --filter @eventory/web build`
 
 ## Dependency map
 
