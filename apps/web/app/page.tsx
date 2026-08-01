@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Button, Container } from '@eventory/ui';
+import { Container } from '@eventory/ui';
 import type { EventListResponse } from '@eventory/contracts';
 import { EventCard } from '../src/components/event-card';
 import { apiRequest } from '../src/lib/api';
+import { PublicDiscoveryHeroArt } from '../src/components/public-discovery-hero-art';
 
 async function getFeaturedEvents(): Promise<EventListResponse | null> {
   try {
@@ -14,41 +15,38 @@ async function getFeaturedEvents(): Promise<EventListResponse | null> {
 
 export default async function HomePage(): Promise<React.JSX.Element> {
   const events = await getFeaturedEvents();
+  const discoveryIsAvailable = events !== null;
+
   return (
-    <div className="page-shell">
+    <div className="page-shell page-shell--discovery">
       <Container>
-        <section className="hero">
-          <div>
+        <section className="discovery-hero" aria-labelledby="discovery-hero-heading">
+          <div className="discovery-hero__copy">
             <span className="kicker">A better room for what matters</span>
-            <h1>Make the moment count.</h1>
+            <h1 id="discovery-hero-heading">Make the moment count.</h1>
             <p>
               Eventory gives people a quieter way to find great events — and gives organizers the
               tools to fill every meaningful seat.
             </p>
-            <div className="hero__actions">
-              <Link href="/events">
-                <Button>
-                  Explore events <span aria-hidden="true">↗</span>
-                </Button>
+            <div className="discovery-hero__actions">
+              <Link className="ui-button ui-button--primary" href="/events">
+                Explore events <span aria-hidden="true">↗</span>
               </Link>
-              <Link href="/organizer">
-                <Button variant="secondary">Build an event</Button>
+              <Link className="ui-button ui-button--secondary" href="/organizer">
+                Build an event
               </Link>
             </div>
           </div>
-          <aside className="hero__aside">
-            <strong>
-              One platform.
-              <br />
-              The whole night.
-            </strong>
-            <span>
-              Discovery, seating, secure checkout, and the ticket in your pocket — designed to feel
-              like one continuous experience.
-            </span>
-          </aside>
+          <div className="discovery-hero__art">
+            <PublicDiscoveryHeroArt />
+            <div className="discovery-hero__note">
+              <span className="kicker">One continuous experience</span>
+              <strong>From the first plan to the last scan.</strong>
+              <p>Discovery, seating, checkout, and the ticket in your pocket.</p>
+            </div>
+          </div>
         </section>
-        <section aria-labelledby="featured-heading">
+        <section className="discovery-section" aria-labelledby="featured-heading">
           <div className="section-heading">
             <div>
               <span className="kicker">The public room</span>
@@ -65,8 +63,23 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               ))}
             </div>
           ) : (
-            <div className="ui-card empty-state">
-              The discovery feed is warming up. Check back soon for the first published rooms.
+            <div className="discovery-empty-state" role="status">
+              <div>
+                <span className="kicker">
+                  {discoveryIsAvailable ? 'Fresh rooms soon' : 'A short interruption'}
+                </span>
+                <h3>
+                  {discoveryIsAvailable ? 'No public events yet.' : 'Discovery needs a moment.'}
+                </h3>
+                <p>
+                  {discoveryIsAvailable
+                    ? 'When an organizer publishes a room, it will appear here.'
+                    : 'We could not load public events right now. Try the directory again in a moment.'}
+                </p>
+              </div>
+              <Link className="text-link" href="/events">
+                Open the event directory <span aria-hidden="true">↗</span>
+              </Link>
             </div>
           )}
         </section>
