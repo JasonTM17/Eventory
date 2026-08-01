@@ -325,6 +325,7 @@ model Booking {
   publicCode     String        @unique @db.VarChar(32)
   userId         String        @db.Uuid
   eventSessionId String        @db.Uuid
+  holdId         String        @db.Uuid
   status         BookingStatus @default(PENDING)
   currency       String        @db.Char(3)
   subtotalMinor  Int
@@ -345,6 +346,7 @@ model Booking {
   @@index([userId, createdAt])
   @@index([eventSessionId, status, createdAt])
   @@index([status, expiresAt])
+  @@index([holdId])
   @@map("bookings")
 }
 

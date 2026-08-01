@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const localSessionSecret = 'eventory-local-session-secret-change-me';
 const localQrSecret = 'eventory-local-qr-signing-secret-change-me';
+const localMockPaymentSecret = 'eventory-local-mock-payment-secret-change-me';
 
 const environmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -14,6 +15,7 @@ const environmentSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   SESSION_SECRET: z.string().min(32).default(localSessionSecret),
   QR_SIGNING_SECRET: z.string().min(32).default(localQrSecret),
+  MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(32).default(localMockPaymentSecret),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(900),
   REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().min(300).max(31_536_000).default(2_592_000),
   SEAT_HOLD_TTL_SECONDS: z.coerce.number().int().min(30).max(1_800).default(600),
@@ -34,6 +36,10 @@ export function parseEnvironment(input: Record<string, unknown> = process.env): 
 
     if (environment.QR_SIGNING_SECRET === localQrSecret) {
       throw new Error('QR_SIGNING_SECRET must be replaced before running in production');
+    }
+
+    if (environment.MOCK_PAYMENT_WEBHOOK_SECRET === localMockPaymentSecret) {
+      throw new Error('MOCK_PAYMENT_WEBHOOK_SECRET must be replaced before running in production');
     }
   }
 
