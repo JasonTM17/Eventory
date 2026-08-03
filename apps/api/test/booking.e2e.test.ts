@@ -389,8 +389,10 @@ describe('booking and payment', { concurrency: false }, () => {
     assert.equal(late.body.status, 'EXPIRED');
     assert.equal(late.body.payment.status, 'REQUIRES_RECONCILIATION');
     assert.equal(await prisma.ticket.count({ where: { bookingId: booking.id } }), 0);
+    const paymentId = booking.payment?.id;
+    assert.ok(paymentId);
     assert.equal(
-      await prisma.paymentReconciliation.count({ where: { paymentId: booking.payment?.id } }),
+      await prisma.paymentReconciliation.count({ where: { paymentId } }),
       1,
     );
     assert.equal(
@@ -410,7 +412,7 @@ describe('booking and payment', { concurrency: false }, () => {
     assert.equal(repeated.body.status, 'EXPIRED');
     assert.equal(repeated.body.payment.status, 'REQUIRES_RECONCILIATION');
     assert.equal(
-      await prisma.paymentReconciliation.count({ where: { paymentId: booking.payment?.id } }),
+      await prisma.paymentReconciliation.count({ where: { paymentId } }),
       1,
     );
   });

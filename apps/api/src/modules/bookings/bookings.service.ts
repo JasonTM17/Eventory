@@ -24,6 +24,8 @@ import type { PaymentWebhookPayload } from '../payments/payment-provider.js';
 const BOOKING_IDEMPOTENCY_SCOPE = 'booking:create';
 const BOOKING_TTL_MS = 10 * 60 * 1_000;
 const PROVIDER_ATTEMPT_LEASE_MS = 30 * 1_000;
+const PROVIDER_INITIALIZATION_WAIT_MS = 5_000;
+const PROVIDER_INITIALIZATION_POLL_MS = 25;
 
 type BookingWithDetails = Prisma.BookingGetPayload<{
   include: { items: true; payment: true };
@@ -871,7 +873,7 @@ export class BookingsService {
         providerLastError: null,
       },
     });
-    if (claim.count !== 1) return this.toView(booking);
+    if (claim.count !== 1) return this.waitForProviderPayment(bookingId, booking);
 
     const claimedPayment = await this.prisma.payment.findUniqueOrThrow({
       where: { id: booking.payment.id },
@@ -894,6 +896,30 @@ export class BookingsService {
       include: { items: true, payment: true },
     });
     return this.toView(refreshed);
+  }
+
+  private async waitForProviderPayment(
+    bookingId: string,
+    fallback: BookingWithDetails,
+  ): Promise<BookingView> {
+    const deadline = Date.now() + PROVIDER_INITIALIZATION_WAIT_MS;
+    let current = fallback;
+    while (Date.now() < deadline) {
+      const refreshed = await this.prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { items: true, payment: true },
+      });
+      if (!refreshed) return this.toView(current);
+      current = refreshed;
+      if (
+        refreshed.payment?.providerReference ||
+        refreshed.payment?.status !== PaymentStatus.PROCESSING
+      ) {
+        return this.toView(refreshed);
+      }
+      await new Promise((resolve) => setTimeout(resolve, PROVIDER_INITIALIZATION_POLL_MS));
+    }
+    return this.toView(current);
   }
 
   private async persistProviderPayment(
