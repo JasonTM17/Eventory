@@ -43,6 +43,13 @@ for service callers.
 | Secret / PII leakage                    | Request or response logs, metrics, errors                                    | Pino redacts authorization/cookies/passwords/refresh tokens/QR/payment signatures and response `Set-Cookie`; safe error filter; metrics omit PII | Third-party infrastructure logs need equivalent redaction policies                                                    |
 | Dependency / supply chain               | Vulnerable package or leaked environment file                                | Lockfile, `npm audit`/`pnpm audit`, `.gitignore`, CI checks, no secrets in images                                                                | Audit findings must be triaged when advisories change                                                                 |
 
+The seating WebSocket is a public read-only availability channel, so an
+originless native client is allowed. Browser origins are still checked at the
+Socket.IO handshake against `CORS_ORIGINS`, and the gateway bounds connections,
+joined sessions, and join-message rate. Holds, checkout, and every inventory
+mutation remain authenticated HTTP operations; the WebSocket cannot claim or
+sell a seat.
+
 ## Operational invariants
 
 1. Never mark a payment successful from a browser redirect or by editing rows

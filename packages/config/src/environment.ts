@@ -16,6 +16,7 @@ const environmentSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   SESSION_SECRET: z.string().min(32).default(localSessionSecret),
   QR_SIGNING_SECRET: z.string().min(32).default(localQrSecret),
+  QR_SIGNING_KEYS: z.string().max(4_000).default(''),
   QR_KEY_VERSION: z.coerce.number().int().min(1).max(100).default(1),
   MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(32).default(localMockPaymentSecret),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().min(1).max(10_000).default(120),
@@ -28,6 +29,10 @@ const environmentSchema = z.object({
   MAILPIT_PORT: z.coerce.number().int().min(1).max(65_535).default(1_025),
   MAIL_FROM: z.string().email().default('no-reply@eventory.local'),
   OUTBOX_WORKER_ENABLED: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .default(() => false),
+  BOOKING_RECONCILIATION_WORKER_ENABLED: z
     .enum(['true', 'false'])
     .transform((value) => value === 'true')
     .default(() => false),

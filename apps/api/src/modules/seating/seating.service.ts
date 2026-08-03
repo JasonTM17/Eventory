@@ -27,6 +27,7 @@ interface HoldRecord {
   userId: string;
   eventSessionId: string;
   seatId: string;
+  seatIds?: string[];
   expiresAt: number;
 }
 
@@ -147,6 +148,7 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     ) {
       throw this.holdOwnershipDenied();
     }
+    this.assertWholeHold(holds, normalizedSeatIds);
     const expiresAt = Math.min(...holds.map((hold) => hold?.expiresAt ?? Date.now()));
     return {
       holdId,
@@ -179,6 +181,7 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     ) {
       throw this.holdOwnershipDenied();
     }
+    this.assertWholeHold(holds, normalizedSeatIds);
     const first = holds[0];
     if (!first) this.holdExpired();
     return {
@@ -246,6 +249,7 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
       holdId,
       userId,
       eventSessionId,
+      seatIds: normalizedSeatIds,
       expiresAt,
     } satisfies Omit<HoldRecord, 'seatId'>);
     const acquired = await this.redis.evaluate(ACQUIRE_HOLDS_SCRIPT, keys, [
@@ -279,6 +283,10 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     this.assertUuid(eventSessionId, 'EVENT_SESSION_INVALID');
     const normalizedSeatIds = this.normalizeSeatIds(seatIds);
     const keys = normalizedSeatIds.map((seatId) => seatHoldKey(eventSessionId, seatId));
+    const existing = (await this.redis.mget(keys)).map((value) => this.parseHold(value));
+    if (existing.every((hold) => !hold)) return { released: false };
+    if (existing.some((hold) => !hold || hold.expiresAt <= Date.now())) this.holdExpired();
+    this.assertWholeHold(existing, normalizedSeatIds);
     const result = await this.redis.evaluate(RELEASE_HOLDS_SCRIPT, keys, [holdToken, userId]);
     if (result === -1) throw this.holdOwnershipDenied();
     if (result === 1) {
@@ -299,8 +307,10 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     const expiresAt = Date.now() + this.ttlMs;
     const keys = normalizedSeatIds.map((seatId) => seatHoldKey(eventSessionId, seatId));
     const existing = await this.redis.mget(keys);
-    const first = this.parseHold(existing[0]);
+    const holds = existing.map((value) => this.parseHold(value));
+    const first = holds[0];
     if (!first) return this.holdExpired();
+    this.assertWholeHold(holds, normalizedSeatIds);
     const value = JSON.stringify({ ...first, holdId: first.holdId, expiresAt });
     const result = await this.redis.evaluate(RENEW_HOLDS_SCRIPT, keys, [
       holdToken,
@@ -378,6 +388,13 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
         typeof parsed.expiresAt !== 'number'
       )
         return undefined;
+      if (
+        parsed.seatIds !== undefined &&
+        (!Array.isArray(parsed.seatIds) ||
+          parsed.seatIds.some((seatId) => typeof seatId !== 'string'))
+      ) {
+        return undefined;
+      }
       return parsed as HoldRecord;
     } catch {
       return undefined;
@@ -407,6 +424,23 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
   private safeKey(value: string): string {
     return createHash('sha256').update(value).digest('hex');
   }
+
+  private assertWholeHold(holds: Array<HoldRecord | undefined>, requestedSeatIds: string[]): void {
+    const first = holds.find(Boolean);
+    if (!first?.seatIds) return;
+    const expected = [...new Set(first.seatIds)].sort();
+    const requested = [...new Set(requestedSeatIds)].sort();
+    if (
+      expected.length !== requested.length ||
+      expected.some((seatId, index) => seatId !== requested[index])
+    ) {
+      throw new ConflictException({
+        code: 'HOLD_MUST_BE_CHECKED_OUT_AS_A_UNIT',
+        message: 'All seats in a hold must be used together',
+      });
+    }
+  }
+
   private assertUuid(value: string, code: string): void {
     if (!this.isUuid(value))
       throw new ConflictException({ code, message: 'Identifier is invalid' });

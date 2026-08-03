@@ -183,6 +183,26 @@ describe('seat reservation', () => {
       .send({ seatIds: [firstSeatId], holdToken: ownerHoldToken })
       .expect(200);
     assert.equal(repeated.body.released, false);
+
+    const wholeHold = await request(app.getHttpServer())
+      .post(`/api/v1/seating/${eventSessionId}/holds`)
+      .set('Cookie', ownerCookie)
+      .send({ seatIds: [firstSeatId, secondSeatId] })
+      .expect(200);
+    const partialRelease = await request(app.getHttpServer())
+      .delete(`/api/v1/seating/${eventSessionId}/holds`)
+      .set('Cookie', ownerCookie)
+      .send({ seatIds: [firstSeatId], holdToken: wholeHold.body.holdToken })
+      .expect(409);
+    assert.equal(partialRelease.body.code, 'HOLD_MUST_BE_CHECKED_OUT_AS_A_UNIT');
+    await request(app.getHttpServer())
+      .delete(`/api/v1/seating/${eventSessionId}/holds`)
+      .set('Cookie', ownerCookie)
+      .send({
+        seatIds: [firstSeatId, secondSeatId],
+        holdToken: wholeHold.body.holdToken,
+      })
+      .expect(200);
   });
 
   it('allows exactly one winner when two users race for the same seat', async () => {

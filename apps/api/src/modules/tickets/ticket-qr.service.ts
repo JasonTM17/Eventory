@@ -22,16 +22,41 @@ const QR_VERSION = 1;
 
 @Injectable()
 export class TicketQrService {
-  constructor(private readonly config: ConfigService) {}
+  private readonly activeKeyVersion: number;
+  private readonly signingKeys: ReadonlyMap<number, string>;
+
+  constructor(config: ConfigService) {
+    this.activeKeyVersion = config.getOrThrow<number>('QR_KEY_VERSION');
+    const keys = new Map<number, string>([
+      [this.activeKeyVersion, config.getOrThrow<string>('QR_SIGNING_SECRET')],
+    ]);
+    const configuredKeys = config.get<string>('QR_SIGNING_KEYS')?.trim();
+    if (configuredKeys) {
+      const configuredVersions = new Set<number>();
+      for (const entry of configuredKeys.split(';')) {
+        const separator = entry.indexOf(':');
+        const version = Number(entry.slice(0, separator));
+        const secret = entry.slice(separator + 1).trim();
+        if (
+          separator <= 0 ||
+          !Number.isInteger(version) ||
+          version < 1 ||
+          version > 100 ||
+          secret.length < 32 ||
+          configuredVersions.has(version)
+        ) {
+          throw new Error('QR_SIGNING_KEYS must contain unique entries in the form version:secret');
+        }
+        configuredVersions.add(version);
+        keys.set(version, secret);
+      }
+    }
+    this.signingKeys = keys;
+  }
 
   createPayload(material: TicketQrMaterial): string {
-    const keyVersion = this.config.getOrThrow<number>('QR_KEY_VERSION');
-    if (material.qrKeyVersion !== keyVersion) {
-      throw new BadRequestException({
-        code: 'QR_KEY_VERSION_UNSUPPORTED',
-        message: 'This ticket uses an unsupported QR signing key version',
-      });
-    }
+    const keyVersion = material.qrKeyVersion;
+    this.assertSupportedKeyVersion(keyVersion);
 
     const publicCode = this.normalizePublicCode(material.publicCode);
     const sessionBinding = this.sessionBinding(material.eventSessionId);
@@ -54,8 +79,7 @@ export class TicketQrService {
     if (!qrNonce || !/^[A-Za-z0-9_-]{16,80}$/.test(qrNonce)) return null;
     if (!signature || !/^[A-Za-z0-9_-]{40,64}$/.test(signature)) return null;
 
-    const configuredVersion = this.config.getOrThrow<number>('QR_KEY_VERSION');
-    if (keyVersion !== configuredVersion) return null;
+    if (!this.signingKeys.has(keyVersion)) return null;
 
     const body = [prefix, QR_VERSION, keyVersion, publicCode, sessionBinding, qrNonce].join('.');
     const expected = Buffer.from(this.sign(body, keyVersion));
@@ -76,15 +100,23 @@ export class TicketQrService {
   }
 
   private sign(body: string, keyVersion: number): string {
-    if (keyVersion !== this.config.getOrThrow<number>('QR_KEY_VERSION')) {
+    const secret = this.signingKeys.get(keyVersion);
+    if (!secret) {
       throw new BadRequestException({
         code: 'QR_KEY_VERSION_UNSUPPORTED',
         message: 'This ticket uses an unsupported QR signing key version',
       });
     }
-    return createHmac('sha256', this.config.getOrThrow<string>('QR_SIGNING_SECRET'))
-      .update(body)
-      .digest('base64url');
+    return createHmac('sha256', secret).update(body).digest('base64url');
+  }
+
+  private assertSupportedKeyVersion(keyVersion: number): void {
+    if (keyVersion !== this.activeKeyVersion && !this.signingKeys.has(keyVersion)) {
+      throw new BadRequestException({
+        code: 'QR_KEY_VERSION_UNSUPPORTED',
+        message: 'This ticket uses an unsupported QR signing key version',
+      });
+    }
   }
 
   private normalizePublicCode(value: string): string {

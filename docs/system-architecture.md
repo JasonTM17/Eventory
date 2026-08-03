@@ -44,6 +44,13 @@ contracts and UI primitives are framework-light packages.
 | Tickets/check-ins       | PostgreSQL                   | Opaque signed QR, conditional status update, unique scan |
 | Email side effects      | Outbox + notification tables | Claim lease, bounded retry, dedupe key                   |
 
+The public seating WebSocket accepts originless clients because live seat
+availability is intentionally public read-only data. Browser origins are still
+checked against `CORS_ORIGINS`; connection count, joined sessions, and join
+messages are bounded at the handshake/gateway boundary. Holds and all booking
+mutations remain authenticated HTTP operations protected by API authorization
+and CSRF policy.
+
 ## Delivery topology
 
 Dockerfiles use dependency, build, and non-root runtime stages. Compose starts
