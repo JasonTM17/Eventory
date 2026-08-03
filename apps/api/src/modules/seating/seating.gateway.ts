@@ -10,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { ConfigService } from '@nestjs/config';
 import { createTrustedOrigins, isTrustedOrigin } from '../../common/security/origin-policy.js';
-import type { Server, Socket } from 'socket.io';
+import type { Namespace, Socket } from 'socket.io';
 
 const MAX_CONNECTIONS_PER_IP = 20;
 const MAX_JOINED_SESSIONS_PER_SOCKET = 10;
@@ -31,7 +31,7 @@ interface SeatingSocketData {
 })
 export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  private server!: Server;
+  private server!: Namespace;
 
   private readonly allowedOrigins: ReadonlySet<string>;
   private readonly connectionsByIp = new Map<string, number>();
@@ -40,8 +40,11 @@ export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGat
     this.allowedOrigins = createTrustedOrigins(config.getOrThrow<string>('CORS_ORIGINS'));
   }
 
-  afterInit(server: Server): void {
-    server.engine.opts.allowRequest = (request, callback) => {
+  afterInit(server: Namespace): void {
+    const engine = server?.server?.engine;
+    if (!engine) return;
+
+    engine.opts.allowRequest = (request, callback) => {
       const origin =
         typeof request.headers.origin === 'string' ? request.headers.origin : undefined;
       if (!origin || isTrustedOrigin(origin, this.allowedOrigins)) {
@@ -50,7 +53,7 @@ export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGat
       }
       callback('SEATING_ORIGIN_DENIED', false);
     };
-    server.engine.opts.cors = {
+    engine.opts.cors = {
       origin: (origin, callback) => {
         callback(null, !origin || isTrustedOrigin(origin, this.allowedOrigins));
       },

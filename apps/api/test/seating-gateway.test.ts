@@ -28,9 +28,11 @@ describe('seating gateway boundaries', () => {
     const gateway = new SeatingGateway(
       new ConfigService({ CORS_ORIGINS: 'http://localhost:3000' }),
     );
-    const server: { engine: { opts: Record<string, unknown> } } = { engine: { opts: {} } };
+    const server: { server: { engine: { opts: Record<string, unknown> } } } = {
+      server: { engine: { opts: {} } },
+    };
     gateway.afterInit(server as never);
-    const allowRequest = server.engine.opts.allowRequest as (
+    const allowRequest = server.server.engine.opts.allowRequest as (
       request: { headers: { origin?: string } },
       callback: (error: string | null, allowed: boolean) => void,
     ) => void;
