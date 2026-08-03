@@ -102,8 +102,15 @@ export interface BookingSummary {
   confirmedAt: string | null;
   items: BookingItemSummary[];
   payment: {
-    providerReference: string;
-    status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED' | 'REFUNDED';
+    providerReference: string | null;
+    status:
+      | 'PENDING'
+      | 'PROCESSING'
+      | 'SUCCEEDED'
+      | 'FAILED'
+      | 'EXPIRED'
+      | 'REFUNDED'
+      | 'REQUIRES_RECONCILIATION';
     amountMinor: number;
     currency: string;
     clientSecret: string | null;

@@ -1,6 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
-import { EventStatus, UserStatus } from '../../generated/prisma/client.js';
+import { IsEnum, IsInt, IsOptional, IsString, Length, Max, MaxLength, Min } from 'class-validator';
+import {
+  EventStatus,
+  PaymentReconciliationStatus,
+  UserStatus,
+} from '../../generated/prisma/client.js';
 
 export class AdminPageQueryDto {
   @IsOptional()
@@ -26,6 +30,18 @@ export class AdminEventQueryDto extends AdminPageQueryDto {
   @IsOptional()
   @IsEnum(EventStatus)
   status?: EventStatus;
+}
+
+export class PaymentReconciliationQueryDto extends AdminPageQueryDto {
+  @IsOptional()
+  @IsEnum(PaymentReconciliationStatus)
+  status?: PaymentReconciliationStatus;
+}
+
+export class ResolvePaymentReconciliationDto {
+  @IsString()
+  @Length(8, 500)
+  resolution!: string;
 }
 
 export class UpdateUserStatusDto {

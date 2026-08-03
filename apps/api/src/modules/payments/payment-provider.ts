@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import type { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 
@@ -9,6 +9,7 @@ export interface CreatePaymentInput {
   amountMinor: number;
   currency: string;
   expiresAt: Date;
+  idempotencyKey: string;
 }
 
 export interface CreatedPayment {
@@ -48,9 +49,16 @@ export class MockPaymentProvider implements PaymentProvider {
   }
 
   async createPayment(input: CreatePaymentInput): Promise<CreatedPayment> {
+    const identity = createHash('sha256')
+      .update(`${this.secret}:${input.idempotencyKey}`)
+      .digest('hex');
     return {
-      providerReference: `mock_${randomUUID().replaceAll('-', '')}`,
-      clientSecret: `mock_client_${randomBytes(24).toString('base64url')}`,
+      // The mock deliberately derives its response from the durable key. This
+      // models a provider idempotency contract even if the API process restarts
+      // after the provider accepted the request but before Eventory persisted
+      // the response.
+      providerReference: `mock_${identity.slice(0, 32)}`,
+      clientSecret: `mock_client_${identity}`,
       expiresAt: input.expiresAt,
     };
   }

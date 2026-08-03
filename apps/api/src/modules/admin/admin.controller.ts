@@ -2,7 +2,13 @@ import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { CurrentUser, RateLimit, Roles } from '../../common/auth/auth.decorators.js';
 import type { AuthenticatedUser } from '../../common/auth/auth.types.js';
 import { UserRole } from '../../generated/prisma/client.js';
-import { AdminEventQueryDto, AdminPageQueryDto, UpdateUserStatusDto } from './admin.dto.js';
+import {
+  AdminEventQueryDto,
+  AdminPageQueryDto,
+  PaymentReconciliationQueryDto,
+  ResolvePaymentReconciliationDto,
+  UpdateUserStatusDto,
+} from './admin.dto.js';
 import { AdminService } from './admin.service.js';
 
 @Controller('admin')
@@ -38,5 +44,20 @@ export class AdminController {
   @Get('audit-logs')
   auditLogs(@Query() query: AdminPageQueryDto): Promise<unknown> {
     return this.admin.listAuditLogs(query);
+  }
+
+  @Get('payment-reconciliations')
+  paymentReconciliations(@Query() query: PaymentReconciliationQueryDto): Promise<unknown> {
+    return this.admin.listPaymentReconciliations(query);
+  }
+
+  @Patch('payment-reconciliations/:reconciliationId/resolve')
+  @RateLimit(60)
+  resolvePaymentReconciliation(
+    @Param('reconciliationId') reconciliationId: string,
+    @Body() body: ResolvePaymentReconciliationDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ): Promise<unknown> {
+    return this.admin.resolvePaymentReconciliation(reconciliationId, actor.id, body.resolution);
   }
 }

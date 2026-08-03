@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Length, Min } from 'class-validator';
 
 export class CreateBookingDto {
   @IsUUID()
@@ -8,13 +8,12 @@ export class CreateBookingDto {
   seatIds!: string[];
 
   @IsString()
-  @Min(32)
-  @Max(160)
+  @Length(32, 160)
   holdToken!: string;
 
   @IsOptional()
   @IsString()
-  @Max(128)
+  @Length(32, 128)
   idempotencyKey?: string;
 
   @IsOptional()

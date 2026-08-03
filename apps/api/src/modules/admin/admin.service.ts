@@ -1,10 +1,13 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, UserStatus } from '../../generated/prisma/client.js';
+import { PaymentReconciliationStatus, Prisma, UserStatus } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infrastructure/database/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AdminEventQueryDto } from './admin.dto.js';
 
 type PageInput = { page?: number; pageSize?: number; search?: string };
+type PaymentReconciliationPageInput = PageInput & {
+  status?: PaymentReconciliationStatus;
+};
 
 @Injectable()
 export class AdminService {
@@ -202,6 +205,122 @@ export class AdminService {
       pageSize,
       total,
       pageCount: Math.ceil(total / pageSize),
+    };
+  }
+
+  async listPaymentReconciliations(input: PaymentReconciliationPageInput) {
+    const page = this.page(input.page);
+    const pageSize = this.pageSize(input.pageSize);
+    const search = input.search?.trim();
+    const where: Prisma.PaymentReconciliationWhereInput = {
+      ...(input.status ? { status: input.status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { providerEventId: { contains: search, mode: 'insensitive' } },
+              { reason: { contains: search, mode: 'insensitive' } },
+              { payment: { booking: { publicCode: { contains: search, mode: 'insensitive' } } } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.paymentReconciliation.findMany({
+        where,
+        select: {
+          id: true,
+          paymentId: true,
+          providerEventId: true,
+          reason: true,
+          status: true,
+          resolution: true,
+          createdAt: true,
+          resolvedAt: true,
+          payment: {
+            select: {
+              providerReference: true,
+              status: true,
+              amountMinor: true,
+              currency: true,
+              booking: { select: { publicCode: true, status: true } },
+            },
+          },
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.paymentReconciliation.count({ where }),
+    ]);
+    return {
+      items: items.map((item) => ({
+        ...item,
+        createdAt: item.createdAt.toISOString(),
+        resolvedAt: item.resolvedAt?.toISOString() ?? null,
+      })),
+      page,
+      pageSize,
+      total,
+      pageCount: Math.ceil(total / pageSize),
+    };
+  }
+
+  async resolvePaymentReconciliation(
+    reconciliationId: string,
+    actorUserId: string,
+    resolution: string,
+  ) {
+    const normalizedResolution = resolution.trim();
+    const resolved = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.paymentReconciliation.findUnique({
+        where: { id: reconciliationId },
+      });
+      if (!current) {
+        throw new NotFoundException({
+          code: 'PAYMENT_RECONCILIATION_NOT_FOUND',
+          message: 'Payment reconciliation was not found',
+        });
+      }
+      if (current.status === PaymentReconciliationStatus.RESOLVED) {
+        throw new ConflictException({
+          code: 'PAYMENT_RECONCILIATION_ALREADY_RESOLVED',
+          message: 'Payment reconciliation is already resolved',
+        });
+      }
+      const updated = await tx.paymentReconciliation.updateMany({
+        where: { id: reconciliationId, status: PaymentReconciliationStatus.OPEN },
+        data: {
+          status: PaymentReconciliationStatus.RESOLVED,
+          resolution: normalizedResolution,
+          resolvedAt: new Date(),
+        },
+      });
+      if (updated.count !== 1) {
+        throw new ConflictException({
+          code: 'PAYMENT_RECONCILIATION_ALREADY_RESOLVED',
+          message: 'Payment reconciliation is already resolved',
+        });
+      }
+      const resolved = await tx.paymentReconciliation.findUniqueOrThrow({
+        where: { id: reconciliationId },
+      });
+      await tx.auditLog.create({
+        data: {
+          action: 'ADMIN_PAYMENT_RECONCILIATION_RESOLVED',
+          resourceType: 'PaymentReconciliation',
+          resourceId: reconciliationId,
+          actorUserId,
+          metadata: { resolution: normalizedResolution },
+        },
+      });
+      return resolved;
+    });
+    return {
+      id: resolved.id,
+      paymentId: resolved.paymentId,
+      status: resolved.status,
+      resolution: resolved.resolution,
+      resolvedAt: resolved.resolvedAt?.toISOString() ?? null,
     };
   }
 

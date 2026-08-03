@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsString, IsUUID, Length, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsString, IsUUID, Length, Min } from 'class-validator';
 import type { PaymentWebhookType } from './payment-provider.js';
 
 export class PaymentWebhookDto {
@@ -9,7 +9,7 @@ export class PaymentWebhookDto {
   type!: PaymentWebhookType;
 
   @IsString()
-  @Max(160)
+  @Length(1, 160)
   reference!: string;
 
   @IsInt()

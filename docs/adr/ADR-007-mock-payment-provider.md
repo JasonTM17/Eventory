@@ -13,6 +13,16 @@ Eventory exposes a `PaymentProvider` boundary and ships a deterministic mock ada
 
 The local-only completion endpoint is rejected when `NODE_ENV=production`. Successful callbacks confirm a booking, atomically mark allocations sold, issue one ticket per booking item, and enqueue an outbox event in PostgreSQL. Failed or expired callbacks transition the payment and booking to terminal states without selling inventory.
 
+### Supported event boundary
+
+The mock provider accepts only `payment.succeeded`, `payment.failed`, and
+`payment.expired`. The webhook DTO rejects refund, cancellation, chargeback, and
+other event types at the API boundary. `REFUNDED` and `CANCELLED` are reserved
+database states for a future provider contract; this release does not revoke
+tickets, issue refunds, or infer settlement from those events. A late capture,
+provider timeout, or provider response after a terminal booking is instead
+stored as `REQUIRES_RECONCILIATION` for an authenticated operator to resolve.
+
 ## Consequences
 
 - Local checkout and failure/rollback scenarios are reproducible without external services.

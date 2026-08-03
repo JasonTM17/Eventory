@@ -62,9 +62,21 @@ enum PaymentStatus {
   FAILED
   EXPIRED
   REFUNDED
+  REQUIRES_RECONCILIATION
+}
+
+enum PaymentReconciliationStatus {
+  OPEN
+  RESOLVED
 }
 
 enum PaymentEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+}
+
+enum PaymentWebhookInboxStatus {
   RECEIVED
   PROCESSED
   IGNORED
@@ -123,7 +135,7 @@ model User {
   organizationsOwned Organization[]       @relation("OrganizationOwner")
   bookings           Booking[]
   tickets            Ticket[]
-  ticketCheckIns     TicketCheckIn[] @relation("TicketCheckInScanner")
+  ticketCheckIns     TicketCheckIn[]      @relation("TicketCheckInScanner")
 
   @@index([status, createdAt])
   @@map("users")
@@ -192,18 +204,22 @@ model AuditLog {
 }
 
 model IdempotencyRecord {
-  id             String   @id @default(uuid()) @db.Uuid
-  scope          String   @db.VarChar(120)
-  key            String   @db.VarChar(255)
-  userId         String?  @db.Uuid
-  responseStatus Int
-  responseBody   Json
-  expiresAt      DateTime
-  createdAt      DateTime @default(now())
-  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id                 String   @id @default(uuid()) @db.Uuid
+  scope              String   @db.VarChar(120)
+  key                String   @db.VarChar(255)
+  userId             String?  @db.Uuid
+  bookingId          String?  @db.Uuid
+  requestFingerprint String?  @db.VarChar(128)
+  responseStatus     Int
+  responseBody       Json
+  expiresAt          DateTime
+  createdAt          DateTime @default(now())
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   @@unique([scope, key])
   @@index([userId, expiresAt])
+  @@index([bookingId])
   @@index([expiresAt])
   @@map("idempotency_records")
 }
@@ -335,33 +351,34 @@ model SeatAllocation {
 }
 
 model Booking {
-  id             String                 @id @default(uuid()) @db.Uuid
-  publicCode     String                 @unique @db.VarChar(32)
-  userId         String                 @db.Uuid
-  eventSessionId String                 @db.Uuid
-  holdId         String                 @db.Uuid
-  status         BookingStatus          @default(PENDING)
-  currency       String                 @db.Char(3)
-  subtotalMinor  Int
-  feeMinor       Int                    @default(0)
-  totalMinor     Int
-  expiresAt      DateTime
-  confirmedAt    DateTime?
-  cancelledAt    DateTime?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventSession   EventSession           @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
-  items          BookingItem[]
-  payment        Payment?
-  tickets        Ticket[]
-  outboxEvents   OutboxEvent[]
-  notifications  NotificationDelivery[]
+  id                 String                 @id @default(uuid()) @db.Uuid
+  publicCode         String                 @unique @db.VarChar(32)
+  userId             String                 @db.Uuid
+  eventSessionId     String                 @db.Uuid
+  holdId             String                 @db.Uuid
+  status             BookingStatus          @default(PENDING)
+  currency           String                 @db.Char(3)
+  subtotalMinor      Int
+  feeMinor           Int                    @default(0)
+  totalMinor         Int
+  expiresAt          DateTime
+  confirmedAt        DateTime?
+  cancelledAt        DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventSession       EventSession           @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  items              BookingItem[]
+  payment            Payment?
+  tickets            Ticket[]
+  outboxEvents       OutboxEvent[]
+  notifications      NotificationDelivery[]
+  idempotencyRecords IdempotencyRecord[]
 
+  @@unique([holdId])
   @@index([userId, createdAt])
   @@index([eventSessionId, status, createdAt])
   @@index([status, expiresAt])
-  @@index([holdId])
   @@map("bookings")
 }
 
@@ -387,22 +404,44 @@ model BookingItem {
 }
 
 model Payment {
-  id                String          @id @default(uuid()) @db.Uuid
-  bookingId         String          @unique @db.Uuid
-  provider          PaymentProvider
-  providerReference String          @unique @db.VarChar(160)
-  status            PaymentStatus   @default(PENDING)
-  amountMinor       Int
-  currency          String          @db.Char(3)
-  clientSecret      String?         @db.VarChar(255)
-  expiresAt         DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  booking           Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  events            PaymentEvent[]
+  id                       String                 @id @default(uuid()) @db.Uuid
+  bookingId                String                 @unique @db.Uuid
+  provider                 PaymentProvider
+  providerReference        String?                @unique @db.VarChar(160)
+  providerIdempotencyKey   String                 @unique @db.VarChar(160)
+  providerAttemptId        String?                @db.Uuid
+  providerAttemptedAt      DateTime?
+  providerLastError        String?                @db.VarChar(500)
+  status                   PaymentStatus          @default(PENDING)
+  amountMinor              Int
+  currency                 String                 @db.Char(3)
+  clientSecret             String?                @db.VarChar(255)
+  expiresAt                DateTime?
+  reconciliationRequiredAt DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  booking                  Booking                @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  events                   PaymentEvent[]
+  reconciliation           PaymentReconciliation?
 
   @@index([status, createdAt])
+  @@index([providerAttemptId])
   @@map("payments")
+}
+
+model PaymentReconciliation {
+  id              String                      @id @default(uuid()) @db.Uuid
+  paymentId       String                      @unique @db.Uuid
+  providerEventId String                      @unique @db.VarChar(160)
+  reason          String                      @db.VarChar(160)
+  status          PaymentReconciliationStatus @default(OPEN)
+  resolution      String?                     @db.VarChar(500)
+  createdAt       DateTime                    @default(now())
+  resolvedAt      DateTime?
+  payment         Payment                     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("payment_reconciliations")
 }
 
 model PaymentEvent {
@@ -422,24 +461,42 @@ model PaymentEvent {
   @@map("payment_events")
 }
 
+model PaymentWebhookInbox {
+  id              String                    @id @default(uuid()) @db.Uuid
+  provider        PaymentProvider
+  providerEventId String                    @db.VarChar(160)
+  eventType       String                    @db.VarChar(80)
+  reference       String                    @db.VarChar(160)
+  amountMinor     Int
+  currency        String                    @db.Char(3)
+  status          PaymentWebhookInboxStatus @default(RECEIVED)
+  payload         Json
+  receivedAt      DateTime                  @default(now())
+  processedAt     DateTime?
+
+  @@unique([provider, providerEventId])
+  @@index([status, receivedAt])
+  @@map("payment_webhook_inbox")
+}
+
 model Ticket {
-  id             String       @id @default(uuid()) @db.Uuid
-  bookingId      String       @db.Uuid
-  bookingItemId  String       @unique @db.Uuid
-  userId         String       @db.Uuid
-  eventSessionId String       @db.Uuid
-  publicCode     String       @unique @db.VarChar(40)
-  qrNonce        String       @unique @default(uuid()) @db.VarChar(80)
-  qrKeyVersion   Int          @default(1)
-  status         TicketStatus @default(ISSUED)
-  issuedAt       DateTime     @default(now())
+  id             String          @id @default(uuid()) @db.Uuid
+  bookingId      String          @db.Uuid
+  bookingItemId  String          @unique @db.Uuid
+  userId         String          @db.Uuid
+  eventSessionId String          @db.Uuid
+  publicCode     String          @unique @db.VarChar(40)
+  qrNonce        String          @unique @default(uuid()) @db.VarChar(80)
+  qrKeyVersion   Int             @default(1)
+  status         TicketStatus    @default(ISSUED)
+  issuedAt       DateTime        @default(now())
   checkedInAt    DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  booking        Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingItem    BookingItem  @relation(fields: [bookingItemId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventSession   EventSession @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  booking        Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingItem    BookingItem     @relation(fields: [bookingItemId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventSession   EventSession    @relation(fields: [eventSessionId], references: [id], onDelete: Restrict)
   checkIns       TicketCheckIn[]
 
   @@index([userId, createdAt])

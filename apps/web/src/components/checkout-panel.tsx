@@ -14,12 +14,16 @@ function holdStorageKey(eventSessionId: string): string {
   return `eventory:seat-hold:${eventSessionId}`;
 }
 
+function bookingKeyStorageKey(eventSessionId: string, holdId: string): string {
+  return `eventory:booking-key:${eventSessionId}:${holdId}`;
+}
+
 export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX.Element {
   const [hold, setHold] = useState<SeatHoldResponse | null>(null);
   const [booking, setBooking] = useState<BookingSummary | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const started = useRef(false);
+  const startedForHold = useRef<string | null>(null);
 
   useEffect(() => {
     const stored = window.sessionStorage.getItem(holdStorageKey(eventSessionId));
@@ -40,9 +44,9 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
   }, [eventSessionId]);
 
   useEffect(() => {
-    if (!hold || started.current) return;
-    started.current = true;
-    const keyName = `eventory:booking-key:${eventSessionId}`;
+    if (!hold || startedForHold.current === hold.holdId) return;
+    startedForHold.current = hold.holdId;
+    const keyName = bookingKeyStorageKey(eventSessionId, hold.holdId);
     const idempotencyKey = window.sessionStorage.getItem(keyName) ?? crypto.randomUUID();
     window.sessionStorage.setItem(keyName, idempotencyKey);
     void apiRequest<BookingSummary>('/bookings', {
@@ -75,7 +79,7 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
   }, [booking]);
 
   async function completeMock(outcome: 'succeed' | 'fail'): Promise<void> {
-    if (!booking?.payment) return;
+    if (!booking?.payment?.providerReference) return;
     setBusy(true);
     setError('');
     try {
@@ -140,7 +144,7 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
               </div>
             ))}
           </div>
-          {booking.status === 'PENDING' ? (
+          {booking.status === 'PENDING' && booking.payment?.providerReference ? (
             <div className="checkout-actions">
               <p>Mock payment is ready. Choose a result to exercise the full callback flow.</p>
               <div>
@@ -156,6 +160,10 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
                 </Button>
               </div>
             </div>
+          ) : booking.status === 'PENDING' ? (
+            <p className="empty-state">
+              Payment initialization is syncing. This page will refresh automatically.
+            </p>
           ) : (
             <p className={booking.status === 'CONFIRMED' ? 'form-success' : 'form-error'}>
               {booking.status === 'CONFIRMED'

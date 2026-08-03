@@ -25,7 +25,9 @@ describe('booking and payment', { concurrency: false }, () => {
   let eventSessionId: string;
   let firstSeatId: string;
   let secondSeatId: string;
+  let thirdSeatId: string;
   let ticketTypeId: string;
+  let concurrentBookingId: string;
   const attendeeEmail = `booking-attendee-${Date.now()}@example.com`;
 
   before(async () => {
@@ -79,8 +81,14 @@ describe('booking and payment', { concurrency: false }, () => {
       .set('Cookie', ownerCookie)
       .send({ rowLabel: 'A', seatNumber: 2 })
       .expect(201);
+    const thirdSeat = await request(app.getHttpServer())
+      .post(`/api/v1/organizer/venues/sections/${section.body.id}/seats`)
+      .set('Cookie', ownerCookie)
+      .send({ rowLabel: 'A', seatNumber: 3 })
+      .expect(201);
     firstSeatId = firstSeat.body.id as string;
     secondSeatId = secondSeat.body.id as string;
+    thirdSeatId = thirdSeat.body.id as string;
 
     const event = await request(app.getHttpServer())
       .post('/api/v1/organizer/events')
@@ -109,7 +117,7 @@ describe('booking and payment', { concurrency: false }, () => {
     const ticketType = await request(app.getHttpServer())
       .post(`/api/v1/organizer/events/${eventId}/ticket-types`)
       .set('Cookie', ownerCookie)
-      .send({ name: 'General', priceMinor: 100_000, capacity: 2 })
+      .send({ name: 'General', priceMinor: 100_000, capacity: 3 })
       .expect(201);
     ticketTypeId = ticketType.body.id as string;
     await request(app.getHttpServer())
@@ -124,6 +132,7 @@ describe('booking and payment', { concurrency: false }, () => {
       data: [
         { eventSessionId, seatId: firstSeatId, ticketTypeId },
         { eventSessionId, seatId: secondSeatId, ticketTypeId },
+        { eventSessionId, seatId: thirdSeatId, ticketTypeId },
       ],
     });
   });
@@ -162,10 +171,23 @@ describe('booking and payment', { concurrency: false }, () => {
         seatIds: [firstSeatId],
         holdToken: held.body.holdToken,
         idempotencyKey,
-        clientTotalMinor: 999,
+        clientTotalMinor: 1,
       });
     assert.equal(duplicate.status, 201);
     assert.equal(duplicate.body.id, booking.body.id);
+
+    const mismatchedReplay = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set('Cookie', attendeeCookie)
+      .send({
+        eventSessionId,
+        seatIds: [firstSeatId],
+        holdToken: held.body.holdToken,
+        idempotencyKey,
+        clientTotalMinor: 999,
+      });
+    assert.equal(mismatchedReplay.status, 409);
+    assert.equal(mismatchedReplay.body.code, 'IDEMPOTENCY_KEY_REUSED');
 
     const payload = {
       id: randomUUID(),
@@ -188,7 +210,7 @@ describe('booking and payment', { concurrency: false }, () => {
       .expect(200);
     assert.equal(repeated.body.status, 'CONFIRMED');
     assert.equal(await prisma.ticket.count({ where: { bookingId: booking.body.id } }), 1);
-    assert.equal(await prisma.outboxEvent.count({ where: { bookingId: booking.body.id } }), 1);
+    assert.equal(await prisma.outboxEvent.count({ where: { bookingId: booking.body.id } }), 2);
     assert.equal(
       (
         await prisma.seatAllocation.findUniqueOrThrow({
@@ -196,6 +218,29 @@ describe('booking and payment', { concurrency: false }, () => {
         })
       ).status,
       'SOLD',
+    );
+
+    const lateFailure = {
+      ...payload,
+      id: randomUUID(),
+      type: 'payment.failed' as const,
+    };
+    const stable = await request(app.getHttpServer())
+      .post('/api/v1/payments/webhooks/mock')
+      .set('x-mock-payment-signature', provider.signPayload(lateFailure))
+      .send(lateFailure)
+      .expect(200);
+    assert.equal(stable.body.status, 'CONFIRMED');
+    assert.equal(stable.body.payment.status, 'SUCCEEDED');
+    assert.equal(
+      (
+        await prisma.paymentEvent.findUniqueOrThrow({
+          where: {
+            provider_providerEventId: { provider: 'MOCK', providerEventId: lateFailure.id },
+          },
+        })
+      ).status,
+      'IGNORED',
     );
   });
 
@@ -210,6 +255,9 @@ describe('booking and payment', { concurrency: false }, () => {
       .set('Cookie', attendeeCookie)
       .send({ eventSessionId, seatIds: [secondSeatId], holdToken: held.body.holdToken })
       .expect(201);
+    const bookingPayment = await prisma.payment.findUniqueOrThrow({
+      where: { bookingId: booking.body.id as string },
+    });
     const tampered = {
       id: randomUUID(),
       type: 'payment.succeeded' as const,
@@ -229,13 +277,20 @@ describe('booking and payment', { concurrency: false }, () => {
       id: randomUUID(),
       amountMinor: 100_000,
     };
-    const rolledBack = await request(app.getHttpServer())
+    const reconciled = await request(app.getHttpServer())
       .post('/api/v1/payments/webhooks/mock')
       .set('x-mock-payment-signature', provider.signPayload(success))
       .send(success)
-      .expect(409);
-    assert.equal(rolledBack.body.code, 'TICKET_CAPACITY_REACHED');
+      .expect(200);
+    assert.equal(reconciled.body.status, 'EXPIRED');
+    assert.equal(reconciled.body.payment.status, 'REQUIRES_RECONCILIATION');
     assert.equal(await prisma.ticket.count({ where: { bookingId: booking.body.id } }), 0);
+    assert.equal(
+      await prisma.paymentReconciliation.count({
+        where: { paymentId: bookingPayment.id },
+      }),
+      1,
+    );
     assert.equal(
       (
         await prisma.seatAllocation.findUniqueOrThrow({
@@ -244,7 +299,7 @@ describe('booking and payment', { concurrency: false }, () => {
       ).status,
       'AVAILABLE',
     );
-    await prisma.ticketType.update({ where: { id: ticketTypeId }, data: { capacity: 2 } });
+    await prisma.ticketType.update({ where: { id: ticketTypeId }, data: { capacity: 3 } });
     await redis.delete([`eventory:seat-hold:${eventSessionId}:${secondSeatId}`]);
   });
 
@@ -267,11 +322,133 @@ describe('booking and payment', { concurrency: false }, () => {
       amountMinor: 100_000,
       currency: 'VND',
     };
-    await request(app.getHttpServer())
+    const late = await request(app.getHttpServer())
       .post('/api/v1/payments/webhooks/mock')
       .set('x-mock-payment-signature', provider.signPayload(payload))
       .send(payload)
-      .expect(409);
+      .expect(200);
+    assert.equal(late.body.status, 'EXPIRED');
+    assert.equal(late.body.payment.status, 'REQUIRES_RECONCILIATION');
     assert.equal(await prisma.ticket.count({ where: { bookingId: booking.body.id } }), 0);
+  });
+
+  it('coalesces concurrent checkout requests without a client idempotency key', async () => {
+    const held = await request(app.getHttpServer())
+      .post(`/api/v1/seating/${eventSessionId}/holds`)
+      .set('Cookie', attendeeCookie)
+      .send({ seatIds: [thirdSeatId], idempotencyKey: `booking-hold-${Date.now()}` })
+      .expect(200);
+    const body = {
+      eventSessionId,
+      seatIds: [thirdSeatId],
+      holdToken: held.body.holdToken as string,
+    };
+    const [first, second] = await Promise.all([
+      request(app.getHttpServer())
+        .post('/api/v1/bookings')
+        .set('Cookie', attendeeCookie)
+        .send(body),
+      request(app.getHttpServer())
+        .post('/api/v1/bookings')
+        .set('Cookie', attendeeCookie)
+        .send(body),
+    ]);
+    assert.equal(first.status, 201, JSON.stringify(first.body));
+    assert.equal(second.status, 201, JSON.stringify(second.body));
+    assert.equal(first.body.id, second.body.id);
+    assert.equal(first.body.payment.providerReference, second.body.payment.providerReference);
+    concurrentBookingId = first.body.id as string;
+    assert.equal(await prisma.booking.count({ where: { holdId: held.body.holdId as string } }), 1);
+    assert.equal(await prisma.payment.count({ where: { bookingId: concurrentBookingId } }), 1);
+  });
+
+  it('records a late capture for manual reconciliation and acknowledges retries', async () => {
+    assert.ok(concurrentBookingId);
+    const booking = await prisma.booking.findUniqueOrThrow({
+      where: { id: concurrentBookingId },
+      include: { payment: true },
+    });
+    const payload = {
+      id: randomUUID(),
+      type: 'payment.succeeded' as const,
+      reference: booking.payment?.providerReference as string,
+      amountMinor: booking.totalMinor,
+      currency: booking.currency,
+    };
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { expiresAt: new Date(Date.now() - 1_000) },
+    });
+    await redis.delete([`eventory:seat-hold:${eventSessionId}:${thirdSeatId}`]);
+
+    const late = await request(app.getHttpServer())
+      .post('/api/v1/payments/webhooks/mock')
+      .set('x-mock-payment-signature', provider.signPayload(payload))
+      .send(payload)
+      .expect(200);
+    assert.equal(late.body.status, 'EXPIRED');
+    assert.equal(late.body.payment.status, 'REQUIRES_RECONCILIATION');
+    assert.equal(await prisma.ticket.count({ where: { bookingId: booking.id } }), 0);
+    assert.equal(
+      await prisma.paymentReconciliation.count({ where: { paymentId: booking.payment?.id } }),
+      1,
+    );
+    assert.equal(
+      (
+        await prisma.paymentEvent.findUniqueOrThrow({
+          where: { provider_providerEventId: { provider: 'MOCK', providerEventId: payload.id } },
+        })
+      ).status,
+      'PROCESSED',
+    );
+
+    const repeated = await request(app.getHttpServer())
+      .post('/api/v1/payments/webhooks/mock')
+      .set('x-mock-payment-signature', provider.signPayload(payload))
+      .send(payload)
+      .expect(200);
+    assert.equal(repeated.body.status, 'EXPIRED');
+    assert.equal(repeated.body.payment.status, 'REQUIRES_RECONCILIATION');
+    assert.equal(
+      await prisma.paymentReconciliation.count({ where: { paymentId: booking.payment?.id } }),
+      1,
+    );
+  });
+
+  it('reuses the durable provider identity after an initialization crash', async () => {
+    const held = await request(app.getHttpServer())
+      .post(`/api/v1/seating/${eventSessionId}/holds`)
+      .set('Cookie', attendeeCookie)
+      .send({ seatIds: [thirdSeatId], idempotencyKey: `booking-hold-${Date.now()}` })
+      .expect(200);
+    const booking = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set('Cookie', attendeeCookie)
+      .send({ eventSessionId, seatIds: [thirdSeatId], holdToken: held.body.holdToken })
+      .expect(201);
+    const originalReference = booking.body.payment.providerReference as string;
+    const payment = await prisma.payment.findUniqueOrThrow({
+      where: { bookingId: booking.body.id },
+    });
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        providerReference: null,
+        clientSecret: null,
+        status: 'PROCESSING',
+        providerAttemptedAt: new Date(Date.now() - 60_000),
+      },
+    });
+
+    const recovered = await request(app.getHttpServer())
+      .get(`/api/v1/bookings/${booking.body.id}`)
+      .set('Cookie', attendeeCookie)
+      .expect(200);
+    assert.equal(recovered.body.payment.providerReference, originalReference);
+    assert.equal(
+      (await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } }))
+        .providerIdempotencyKey,
+      `booking:${booking.body.id}`,
+    );
   });
 });
