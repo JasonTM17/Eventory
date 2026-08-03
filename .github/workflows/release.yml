@@ -1,0 +1,183 @@
+name: Release containers
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Require a release commit from main
+        shell: bash
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Match tag and workspace versions
+        shell: bash
+        run: |
+          release_version="${GITHUB_REF_NAME#v}"
+          root_version="$(node --print "require('./package.json').version")"
+          test "$release_version" = "$root_version"
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const expected = JSON.parse(readFileSync('package.json', 'utf8')).version;
+          const manifests = [
+            'apps/api/package.json',
+            'apps/web/package.json',
+            'packages/config/package.json',
+            'packages/contracts/package.json',
+            'packages/eslint-config/package.json',
+            'packages/typescript-config/package.json',
+            'packages/ui/package.json',
+          ];
+
+          for (const manifest of manifests) {
+            const version = JSON.parse(readFileSync(manifest, 'utf8')).version;
+            if (version !== expected) {
+              throw new Error(`${manifest} is ${version}; expected ${expected}`);
+            }
+          }
+          NODE
+
+  publish:
+    needs: validate-version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            title: Eventory API
+            description: Eventory modular-monolith API
+            dockerfile: apps/api/Dockerfile
+          - service: web
+            title: Eventory Web
+            description: Eventory Next.js web application
+            dockerfile: apps/web/Dockerfile
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Generate OCI metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/eventory-${{ matrix.service }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/eventory-${{ matrix.service }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha,format=long
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=${{ matrix.title }}
+            org.opencontainers.image.description=${{ matrix.description }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+      - name: Build and publish ${{ matrix.service }}
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=eventory-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=eventory-${{ matrix.service }}
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify paired digests and create release notes
+        id: digests
+        shell: bash
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+
+          digest() {
+            docker buildx imagetools inspect "$1" | awk '$1 == "Digest:" { print $2; exit }'
+          }
+
+          api_ghcr="$(digest "ghcr.io/$owner/eventory-api:$version")"
+          api_dockerhub="$(digest "$DOCKERHUB_USERNAME/eventory-api:$version")"
+          web_ghcr="$(digest "ghcr.io/$owner/eventory-web:$version")"
+          web_dockerhub="$(digest "$DOCKERHUB_USERNAME/eventory-web:$version")"
+
+          test -n "$api_ghcr"
+          test -n "$web_ghcr"
+          test "$api_ghcr" = "$api_dockerhub"
+          test "$web_ghcr" = "$web_dockerhub"
+
+          cat > release-notes.md <<EOF
+          ## Container packages
+
+          | Service | Version | Full source tag | Immutable digest |
+          | --- | --- | --- | --- |
+          | API | \`$version\` | \`sha-$GITHUB_SHA\` | \`$api_ghcr\` |
+          | Web | \`$version\` | \`sha-$GITHUB_SHA\` | \`$web_ghcr\` |
+
+          Each digest is identical on GitHub Container Registry and Docker Hub.
+          Both images include OCI provenance and SBOM attestations and run as the non-root \`eventory\` user.
+
+          See [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/CHANGELOG.md) for release changes and [the deployment guide](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/deployment-guide.md) for pull commands and runtime requirements.
+          EOF
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Eventory $GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --title "Eventory $GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+          fi

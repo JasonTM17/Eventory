@@ -37,6 +37,8 @@ ENV NODE_ENV=production
 ENV PORT=4000
 WORKDIR /app
 
+LABEL org.opencontainers.image.source="https://github.com/JasonTM17/Eventory"
+
 RUN apt-get update \
   && apt-get install --no-install-recommends --yes ca-certificates openssl \
   && rm -rf /var/lib/apt/lists/*
