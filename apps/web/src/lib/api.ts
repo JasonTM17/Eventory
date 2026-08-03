@@ -1,9 +1,13 @@
 import type { ApiErrorBody } from '@eventory/contracts';
 
 const defaultApiBaseUrl = 'http://localhost:4000/api/v1';
+const publicApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+const serverApiBaseUrl = process.env.API_BASE_URL;
 
 export const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? defaultApiBaseUrl;
+  typeof window === 'undefined'
+    ? (serverApiBaseUrl ?? publicApiBaseUrl ?? defaultApiBaseUrl)
+    : (publicApiBaseUrl ?? defaultApiBaseUrl);
 
 export class ApiRequestError extends Error {
   constructor(
