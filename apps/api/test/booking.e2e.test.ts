@@ -391,10 +391,7 @@ describe('booking and payment', { concurrency: false }, () => {
     assert.equal(await prisma.ticket.count({ where: { bookingId: booking.id } }), 0);
     const paymentId = booking.payment?.id;
     assert.ok(paymentId);
-    assert.equal(
-      await prisma.paymentReconciliation.count({ where: { paymentId } }),
-      1,
-    );
+    assert.equal(await prisma.paymentReconciliation.count({ where: { paymentId } }), 1);
     assert.equal(
       (
         await prisma.paymentEvent.findUniqueOrThrow({
@@ -411,10 +408,7 @@ describe('booking and payment', { concurrency: false }, () => {
       .expect(200);
     assert.equal(repeated.body.status, 'EXPIRED');
     assert.equal(repeated.body.payment.status, 'REQUIRES_RECONCILIATION');
-    assert.equal(
-      await prisma.paymentReconciliation.count({ where: { paymentId } }),
-      1,
-    );
+    assert.equal(await prisma.paymentReconciliation.count({ where: { paymentId } }), 1);
   });
 
   it('reuses the durable provider identity after an initialization crash', async () => {

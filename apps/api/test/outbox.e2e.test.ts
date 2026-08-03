@@ -122,6 +122,7 @@ describe('transactional outbox', { concurrency: false }, () => {
         aggregateType: 'Booking',
         aggregateId: randomUUID(),
         attempts: 4,
+        nextAttemptAt: new Date(Date.now() - 1_000),
         payload: { reason: 'missing booking' },
       },
     });
