@@ -44,9 +44,9 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 | Phase | Name | Status |
 |-------|------|--------|
 | 1 | [Session security](./phase-01-session-security.md) | Completed |
-| 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | In Progress |
+| 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Completed |
 | 3 | [Operational resilience](./phase-03-operational-resilience.md) | In Progress |
-| 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Pending |
+| 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | In Progress |
 
 ## Dependencies
 
@@ -59,26 +59,30 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 
 ## Release Acceptance Criteria
 
-- [ ] Cross-origin cookie-issuing auth mutations are rejected and covered by an
+- [x] Cross-origin cookie-issuing auth mutations are rejected and covered by an
   E2E regression test.
-- [ ] A valid seat hold maps to one durable checkout and one provider attempt.
-- [ ] The durable checkout claim commits before any external provider side
+- [x] A valid seat hold maps to one durable checkout and one provider attempt.
+- [x] The durable checkout claim commits before any external provider side
   effect, with an idempotent recovery path for an unknown provider outcome.
-- [ ] Webhook duplicates and out-of-order events cannot regress confirmed state.
-- [ ] A first successful payment received after expiry has a durable fulfillment
+- [x] Webhook duplicates and out-of-order events cannot regress confirmed state.
+- [x] A first successful payment received after expiry has a durable fulfillment
   or compensation disposition, audit record, and operator-visible signal.
-- [ ] Schema changes are forward-only, duplicate-safe, and rehearsed before
+- [x] Schema changes are forward-only, duplicate-safe, and rehearsed before
   enforcing a new checkout invariant.
 - [ ] A clean GitHub runner completes typecheck, migration, tests, web build,
   audit, Compose validation, and image builds.
-- [ ] Integration tests use an explicit Compose-backed database/Redis target and
+- [x] Integration tests use an explicit Compose-backed database/Redis target and
   cannot mutate an unrelated local service at default host ports.
-- [ ] WebSocket connections are rejected at handshake for disallowed origins and
+- [x] WebSocket connections are rejected at handshake for disallowed origins and
   bounded per socket/IP according to the stated public-seat-data policy.
-- [ ] Outbox claim failures are logged, metered, retried without overlapping
+- [x] Outbox claim failures are logged, metered, retried without overlapping
   worker cycles, and covered by a focused regression.
-- [ ] The public README accurately communicates the demo scope and has visual
+- [x] The public README accurately communicates the demo scope and has visual
   proof only after the release gate is green.
+
+The local release gate is green for the current worktree. The unchecked CI
+criterion is intentionally limited to a new remote run for these unpushed
+commits; the latest observed `main` run predates this work.
 
 ## Commit Boundaries
 
@@ -141,10 +145,14 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 
 ## Verification snapshot — 2026-08-03
 
-- Phase 2 implementation and focused provider/worker/gateway/QR tests are in
-  the worktree; clean and duplicate-data migration rehearsals pass locally.
-- Phase 3 static gates, web build, audit, Compose validation, guarded workers,
-  gateway limits, and QR keyring coverage pass locally.
-- The dependencies-only integration suite remains unverified on this machine
-  because Docker Desktop's Linux engine is unavailable. Phase 3 and the overall
-  plan remain in progress until a clean CI/integration run is green.
+- Phase 2: durable hold/provider claims, monotonic webhook transitions, late
+  capture reconciliation, and idempotency regressions pass; clean and duplicate
+  migration rehearsals also pass.
+- Phase 3: `pnpm test:integration` passes against an owned dynamic Compose
+  project with 17 suites, 46 tests, and 0 failures; the native WebSocket origin
+  test is included. Typecheck, lint, format, web build, audit, DB validation,
+  and Compose config validation pass locally.
+- Portfolio: two screenshots were captured from the seeded local product and
+  linked from README. No public URL, license, or GitHub metadata was invented.
+- Remote GitHub CI for the unpushed commits is not verified; keep that release
+  criterion open until the owner authorizes a push or runs it externally.

@@ -105,22 +105,22 @@ enforcement; rate limiting belongs at the gateway/edge boundary.
 
 ## Success Criteria
 
-- [ ] A fresh clone/clean CI runner passes typecheck without prebuilt workspace
+- [x] A fresh clone/clean CI runner passes typecheck without prebuilt workspace
       declarations.
 - [ ] GitHub Actions on `main` is green through tests, web build, audit, Compose
       validation, Docker builds, and artifact upload.
-- [ ] API tests pass using the Compose services actually started for that run;
+- [x] API tests pass using the Compose services actually started for that run;
       intentionally wrong ports or a non-test database fail with a clear setup
       error, and no test mutates the normal `eventory` database.
-- [ ] Repeated test runs are deterministic; the outbox test has no dependence on
+- [x] Repeated test runs are deterministic; the outbox test has no dependence on
       globally claimable stale records.
-- [ ] A claim failure cannot create an unhandled worker rejection or overlapping
+- [x] A claim failure cannot create an unhandled worker rejection or overlapping
       processing cycle, and emits the expected log/metric signal.
-- [ ] Expiry and late-payment paths use the shared transition contract and leave
+- [x] Expiry and late-payment paths use the shared transition contract and leave
       one consistent durable fulfillment or compensation state.
-- [ ] Disallowed WebSocket origins are rejected before connection, including
+- [x] Disallowed WebSocket origins are rejected before connection, including
       native WebSocket transport; allowed clients cannot exceed stated limits.
-- [ ] QR rotation has either compatible verification coverage or an approved,
+- [x] QR rotation has either compatible verification coverage or an approved,
       tested operational prohibition/runbook.
 
 ## Risk Assessment
@@ -151,7 +151,10 @@ enforcement; rate limiting belongs at the gateway/edge boundary.
 
 Implemented and locally verified: clean typecheck dependency graph, owned
 dependencies-only integration runner, guarded outbox/booking workers, gateway
-handshake and pressure limits, and compatible QR signing key rotation. The
-integration suite cannot run on the current workstation because Docker
-Desktop's Linux engine is unavailable; keep the phase open until CI or a
-working Docker host confirms the full API suite.
+handshake and pressure limits, compatible QR signing key rotation, and native
+WebSocket handshake behavior. The integration run completed with 17 suites,
+46 tests, and 0 failures; the runner applied 12 migrations, used dynamic
+ports/sentinels, and cleaned its Compose project.
+
+The GitHub Actions criterion remains open because these commits are local and
+unpushed; the latest observed remote `main` run predates this verification.

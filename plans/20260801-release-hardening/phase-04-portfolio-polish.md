@@ -12,9 +12,9 @@ dependencies: [3]
 ## Overview
 
 Turn the technically strong repository into a convincing public showcase only
-after the safety and CI gates are green. The current About description/topics
-are useful, but README/docs contain no screenshots, GIFs, video, badges, public
-homepage, or license declaration.
+after the safety and local verification gates are green. README now contains
+real screenshots from the seeded product; public homepage, badges, and license
+remain intentionally unresolved until their sources or owner decisions exist.
 
 ## Requirements
 
@@ -39,7 +39,8 @@ from the actual Eventory flow.
 - Modify: `README.md` — showcase header, verified badges, demo flow, accurate
   scope statement, and links to technical docs.
 - Create: `assets/images/` — optimized screenshots or a short GIF of real
-  booking → mock payment → QR ticket → check-in flow.
+  booking → mock payment → QR ticket → check-in flow. Current evidence includes
+  discovery and seat-selection screenshots.
 - Modify if supported by a real endpoint: GitHub repository homepage metadata.
 - Create: `LICENSE` only after owner choice.
 - Modify when claims change: `docs/deployment-guide.md`,
@@ -64,12 +65,23 @@ from the actual Eventory flow.
 
 ## Success Criteria
 
-- [ ] README contains real, accessible visual proof and a concise demo flow.
-- [ ] Badges resolve to real services and the default branch is `main`.
-- [ ] About description/topics remain accurate; homepage is empty or verified.
-- [ ] No screenshot/GIF exposes PII, secrets, localhost-only claims, or fake
+- [x] README contains real, accessible visual proof and a concise demo flow.
+- [x] The validation badge resolves to the real workflow and the default branch
+      is `main`.
+- [x] About description/topics remain accurate; homepage is empty or verified.
+- [x] No screenshot/GIF exposes PII, secrets, localhost-only claims, or fake
       payment/provider behavior.
 - [ ] License is present only with an explicit owner choice.
+
+## Verification snapshot — 2026-08-03
+
+- `assets/images/eventory-demo-discovery.png` and
+  `assets/images/eventory-demo-seats.png` were captured from the seeded local
+  Compose product and visually inspected.
+- README labels the screenshots as local/demo evidence and does not claim a
+  public URL or production payment-provider integration.
+- Badge setup, GitHub homepage metadata, and license remain open external or
+  owner-choice items; no value was invented.
 
 ## Risk Assessment
 
@@ -83,4 +95,5 @@ from the actual Eventory flow.
 ## Next Steps
 
 - User decision required: public deployment URL and license selection.
-- Execute after Phase 3, not as a substitute for runtime hardening.
+- Runtime hardening is complete locally; execute the remaining external/owner
+  decisions before calling the public repository release-ready.

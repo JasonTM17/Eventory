@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: Booking and payment integrity
-status: in-progress
+status: completed
 priority: P1
 effort: 1-2d
 dependencies: []
@@ -102,19 +102,29 @@ booking/payment state.
 
 ## Success Criteria
 
-- [ ] Two requests for the same hold yield one durable checkout and one provider
+- [x] Two requests for the same hold yield one durable checkout and one provider
       attempt, including a crash/retry window between claim and provider call.
-- [ ] A retried webhook acknowledges its already-recorded provider event even
+- [x] A retried webhook acknowledges its already-recorded provider event even
       after its Redis hold expires.
-- [ ] A first successful payment after expiry creates exactly one durable
+- [x] A first successful payment after expiry creates exactly one durable
       fulfillment or compensation/reconciliation action and never strands a
       captured payment.
-- [ ] A later non-success event cannot downgrade confirmed booking/payment state.
-- [ ] Idempotency reuse with a different request is rejected, not replayed.
-- [ ] The checkout panel creates distinct idempotency identities for distinct
+- [x] A later non-success event cannot downgrade confirmed booking/payment state.
+- [x] Idempotency reuse with a different request is rejected, not replayed.
+- [x] The checkout panel creates distinct idempotency identities for distinct
       holds in the same event session.
-- [ ] Prisma migration is rehearsed against duplicate data, validates on a clean
+- [x] Prisma migration is rehearsed against duplicate data, validates on a clean
       database, and integration tests cover all supported state transitions.
+
+## Verification snapshot — 2026-08-03
+
+- The booking E2E suite covers concurrent no-key checkout, provider recovery,
+  duplicate/out-of-order webhooks, late capture reconciliation, and idempotency
+  mismatch behavior.
+- `pnpm test:integration` passes with 17 suites, 46 tests, and 0 failures on
+  the isolated Compose target.
+- Clean migration deployment and duplicate-hold preflight rehearsals pass;
+  duplicate data is rejected before the unique invariant is enforced.
 
 ## Risk Assessment
 

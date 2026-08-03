@@ -2,6 +2,8 @@
 
 Eventory is a production-oriented full-stack event ticketing platform. It is designed as a modular monolith so the project can demonstrate reliable booking, real-time seat holds, simulated payments, signed QR tickets, authorization, observability, testing, and delivery automation without pretending that every feature needs a separate service.
 
+[![Main validation](https://github.com/JasonTM17/Eventory/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Eventory/actions/workflows/main.yml)
+
 ## Repository status
 
 The local release journey is implemented on the `main` branch. The phase plan,
@@ -15,6 +17,17 @@ images, and operational runbooks are maintained alongside the code.
 - NestJS modular monolith + Prisma
 - PostgreSQL, Redis, BullMQ-style workers, and Mailpit
 - Docker Compose and GitHub Actions
+
+## Product preview
+
+These screenshots were captured from the seeded local Compose stack and show
+the public discovery and seat-selection flows. Payment and email delivery are
+deterministic local integrations; this repository does not claim a public demo
+or a production payment-provider connection.
+
+![Eventory public event discovery showing a seeded event](./assets/images/eventory-demo-discovery.png)
+
+![Eventory seat map showing available seats for the seeded event](./assets/images/eventory-demo-seats.png)
 
 ## Prerequisites
 
