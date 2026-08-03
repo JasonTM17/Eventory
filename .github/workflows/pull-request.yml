@@ -36,6 +36,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm package:check
+      - run: pnpm --filter @eventory/web test
       - run: pnpm --filter @eventory/api db:validate
       - run: pnpm test:integration
       - run: pnpm --filter @eventory/web build

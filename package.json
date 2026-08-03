@@ -14,6 +14,7 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "package:check": "pnpm --filter @eventory/config build && node scripts/verify-package-payloads.mjs",
     "validate:env": "tsx scripts/validate-environment.ts",
     "check:dependencies": "node scripts/check-dependencies.mjs",
     "wait:dependencies": "node scripts/check-dependencies.mjs --wait",

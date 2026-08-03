@@ -5,6 +5,9 @@
   "type": "module",
   "main": "src/index.tsx",
   "types": "src/index.tsx",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
