@@ -18,7 +18,7 @@ interface SeatMapProps {
 interface SeatUpdate {
   eventSessionId: string;
   seatIds: string[];
-  state: 'held' | 'available';
+  state: 'held' | 'available' | 'blocked' | 'sold';
   holdExpiresAt?: string;
 }
 

@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -69,6 +70,8 @@ type PaymentWebhookResult = BookingView | AcceptedPaymentWebhook;
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly seating: SeatingService,
@@ -383,9 +386,13 @@ export class BookingsService {
     const event = await this.recordPaymentEvent(payment.id, normalizedPayload);
     this.assertPaymentEventMatches(event, payment.id, normalizedPayload);
     try {
-      return await this.prisma.$transaction((tx) =>
+      const result = await this.prisma.$transaction((tx) =>
         this.applyPaymentWebhook(tx, payment.id, event.id, normalizedPayload),
       );
+      if (result.status === BookingStatus.CONFIRMED) {
+        await this.releaseConfirmedSeatHold(result.id);
+      }
+      return result;
     } catch (error) {
       if (normalizedPayload.type === 'payment.succeeded' && this.isFulfillmentConflict(error)) {
         return this.reconcileFulfillmentFailure(payment.id, event.id, normalizedPayload, error);
@@ -552,6 +559,30 @@ export class BookingsService {
       throw new NotFoundException({ code: 'PAYMENT_NOT_FOUND', message: 'Payment not found' });
     }
     return result;
+  }
+
+  private async releaseConfirmedSeatHold(bookingId: string): Promise<void> {
+    try {
+      const booking = await this.prisma.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          eventSessionId: true,
+          items: { select: { seatId: true } },
+          status: true,
+        },
+      });
+      if (!booking || booking.status !== BookingStatus.CONFIRMED) return;
+      await this.seating.releaseConfirmedHold(
+        booking.eventSessionId,
+        booking.items.map((item) => item.seatId),
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Could not clear a confirmed seat hold for booking ${bookingId}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private async storeUnmatchedPaymentWebhook(

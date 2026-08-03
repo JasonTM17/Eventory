@@ -219,6 +219,19 @@ describe('booking and payment', { concurrency: false }, () => {
       ).status,
       'SOLD',
     );
+    const availability = await request(app.getHttpServer())
+      .get(`/api/v1/seating/${eventSessionId}/availability`)
+      .expect(200);
+    const soldSeat = (
+      availability.body.seats as Array<{
+        seatId: string;
+        status: string;
+        holdExpiresAt: string | null;
+      }>
+    ).find((seat) => seat.seatId === firstSeatId);
+    assert.equal(soldSeat?.status, 'sold');
+    assert.equal(soldSeat?.holdExpiresAt, null);
+    assert.equal(await redis.get(`eventory:seat-hold:${eventSessionId}:${firstSeatId}`), null);
 
     const lateFailure = {
       ...payload,

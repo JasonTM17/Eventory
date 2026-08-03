@@ -4,18 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { BookingSummary, SeatHoldResponse } from '@eventory/contracts';
 import { Button, Card, StatusBadge } from '@eventory/ui';
 import { apiRequest, isApiError } from '../lib/api';
+import {
+  bookingKeyStorageKey,
+  clearConfirmedCheckoutStorage,
+  holdStorageKey,
+} from '../lib/checkout-storage';
 import { formatMoney } from '../lib/format';
 
 interface CheckoutPanelProps {
   eventSessionId: string;
-}
-
-function holdStorageKey(eventSessionId: string): string {
-  return `eventory:seat-hold:${eventSessionId}`;
-}
-
-function bookingKeyStorageKey(eventSessionId: string, holdId: string): string {
-  return `eventory:booking-key:${eventSessionId}:${holdId}`;
 }
 
 export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX.Element {
@@ -77,6 +74,11 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
     }, 2_000);
     return () => window.clearInterval(timer);
   }, [booking]);
+
+  useEffect(() => {
+    if (!hold || booking?.status !== 'CONFIRMED') return;
+    clearConfirmedCheckoutStorage(window.sessionStorage, eventSessionId, hold.holdId);
+  }, [booking?.status, eventSessionId, hold]);
 
   async function completeMock(outcome: 'succeed' | 'fail'): Promise<void> {
     if (!booking?.payment?.providerReference) return;

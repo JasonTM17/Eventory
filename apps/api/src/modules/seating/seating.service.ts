@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
@@ -48,6 +49,7 @@ export interface OwnedHold {
 
 @Injectable()
 export class SeatingService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(SeatingService.name);
   private readonly ttlMs: number;
   private removeExpirationListener?: () => void;
 
@@ -63,8 +65,16 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
   onModuleInit(): void {
     this.removeExpirationListener = this.redis.onExpired((key) => {
       const parsed = this.parseHoldKey(key);
-      if (parsed)
-        this.gateway.publishSeatChange(parsed.eventSessionId, [parsed.seatId], 'available');
+      if (!parsed) return;
+      void this.publishPersistentSeatStates(parsed.eventSessionId, [parsed.seatId]).catch(
+        (error) => {
+          this.logger.warn(
+            `Could not publish expired seat state for ${parsed.seatId}: ${
+              error instanceof Error ? error.message : 'unknown error'
+            }`,
+          );
+        },
+      );
     });
   }
 
@@ -109,6 +119,7 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
         const persistentStatus = allocation.status.toLowerCase() as
           'available' | 'blocked' | 'sold';
         const activeHold = hold && hold.expiresAt > Date.now() ? hold : undefined;
+        const isAvailableHold = persistentStatus === 'available' && activeHold;
         return {
           seatId: allocation.seatId,
           sectionId: allocation.seat.sectionId,
@@ -116,8 +127,8 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
           rowLabel: allocation.seat.rowLabel,
           seatNumber: allocation.seat.seatNumber,
           code: allocation.seat.code,
-          status: activeHold ? 'held' : persistentStatus,
-          holdExpiresAt: activeHold ? new Date(activeHold.expiresAt).toISOString() : null,
+          status: isAvailableHold ? 'held' : persistentStatus,
+          holdExpiresAt: isAvailableHold ? new Date(activeHold.expiresAt).toISOString() : null,
           ticketTypeId: allocation.ticketTypeId,
         };
       }),
@@ -290,7 +301,7 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     const result = await this.redis.evaluate(RELEASE_HOLDS_SCRIPT, keys, [holdToken, userId]);
     if (result === -1) throw this.holdOwnershipDenied();
     if (result === 1) {
-      this.gateway.publishSeatChange(eventSessionId, normalizedSeatIds, 'available');
+      await this.publishPersistentSeatStates(eventSessionId, normalizedSeatIds);
       return { released: true };
     }
     return { released: false };
@@ -329,6 +340,13 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     };
     this.gateway.publishSeatChange(eventSessionId, normalizedSeatIds, 'held', response.expiresAt);
     return response;
+  }
+
+  async releaseConfirmedHold(eventSessionId: string, seatIds: string[]): Promise<void> {
+    this.assertUuid(eventSessionId, 'EVENT_SESSION_INVALID');
+    const normalizedSeatIds = this.normalizeSeatIds(seatIds);
+    await this.redis.delete(normalizedSeatIds.map((seatId) => seatHoldKey(eventSessionId, seatId)));
+    this.gateway.publishSeatChange(eventSessionId, normalizedSeatIds, 'sold');
   }
 
   private async findSession(eventSessionId: string) {
@@ -419,6 +437,22 @@ export class SeatingService implements OnModuleInit, OnModuleDestroy {
     if (parts.length !== 2 || !this.isUuid(parts[0] ?? '') || !this.isUuid(parts[1] ?? ''))
       return undefined;
     return { eventSessionId: parts[0] as string, seatId: parts[1] as string };
+  }
+
+  private async publishPersistentSeatStates(
+    eventSessionId: string,
+    seatIds: string[],
+  ): Promise<void> {
+    const allocations = await this.prisma.seatAllocation.findMany({
+      where: { eventSessionId, seatId: { in: seatIds } },
+      select: { seatId: true, status: true },
+    });
+    const byState = new Map<'available' | 'blocked' | 'sold', string[]>();
+    for (const allocation of allocations) {
+      const state = allocation.status.toLowerCase() as 'available' | 'blocked' | 'sold';
+      byState.set(state, [...(byState.get(state) ?? []), allocation.seatId]);
+    }
+    for (const [state, ids] of byState) this.gateway.publishSeatChange(eventSessionId, ids, state);
   }
 
   private safeKey(value: string): string {
