@@ -8,9 +8,15 @@ import { apiRequest, isApiError } from '../lib/api';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
+  nextPath?: string;
 }
 
-export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
+function safeNextPath(nextPath: string | undefined): string {
+  if (nextPath?.startsWith('/') && !nextPath.startsWith('//')) return nextPath;
+  return '/organizer';
+}
+
+export function AuthForm({ mode, nextPath }: AuthFormProps): React.JSX.Element {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -28,7 +34,7 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
         method: 'POST',
         body: JSON.stringify({ email, password, ...(isRegister ? { displayName } : {}) }),
       });
-      router.push(isRegister ? '/organizer' : '/organizer');
+      router.push(safeNextPath(nextPath));
       router.refresh();
     } catch (requestError) {
       setError(
@@ -53,10 +59,12 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
               : 'Sign in to keep your tickets, reservations, and event studio in one calm place.'}
           </p>
         </div>
-        <form className="stack-form" onSubmit={handleSubmit} noValidate>
+        <form className="stack-form" onSubmit={handleSubmit}>
           {isRegister ? (
-            <Field label="Display name">
+            <Field label="Display name" htmlFor="display-name">
               <input
+                id="display-name"
+                name="displayName"
                 required
                 minLength={2}
                 maxLength={120}
@@ -66,20 +74,26 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
               />
             </Field>
           ) : null}
-          <Field label="Email address">
+          <Field label="Email address" htmlFor="email">
             <input
+              id="email"
+              name="email"
               required
               type="email"
               autoComplete="email"
+              spellCheck={false}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
           </Field>
           <Field
             label="Password"
+            htmlFor="password"
             {...(isRegister ? { hint: 'Use 12+ characters with upper, lower, and a number.' } : {})}
           >
             <input
+              id="password"
+              name="password"
               required
               minLength={isRegister ? 12 : undefined}
               type="password"
@@ -99,7 +113,15 @@ export function AuthForm({ mode }: AuthFormProps): React.JSX.Element {
         </form>
         <p className="auth-panel__switch">
           {isRegister ? 'Already have an account?' : 'New to Eventory?'}{' '}
-          <Link href={isRegister ? '/login' : '/register'}>
+          <Link
+            href={
+              nextPath
+                ? `${isRegister ? '/login' : '/register'}?next=${encodeURIComponent(nextPath)}`
+                : isRegister
+                  ? '/login'
+                  : '/register'
+            }
+          >
             {isRegister ? 'Sign in' : 'Create an account'}
           </Link>
         </p>

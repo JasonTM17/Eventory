@@ -94,6 +94,7 @@ export function OrganizerStudio({
                 type="button"
                 className={`workspace-item ${selectedOrganizationId === organization.id ? 'workspace-item--selected' : ''}`}
                 key={organization.id}
+                aria-pressed={selectedOrganizationId === organization.id}
                 onClick={() => setSelectedOrganizationId(organization.id)}
               >
                 <span>
@@ -115,10 +116,12 @@ export function OrganizerStudio({
           </label>
           <input
             id="organization-name"
+            name="organizationName"
             required
+            autoComplete="off"
             value={organizationName}
             onChange={(event) => setOrganizationName(event.target.value)}
-            placeholder="New workspace name"
+            placeholder="New workspace name…"
           />
           <Button type="submit" variant="secondary" disabled={busy}>
             Create workspace
@@ -133,25 +136,31 @@ export function OrganizerStudio({
           </div>
         </div>
         <form className="stack-form" onSubmit={createEvent}>
-          <Field label="Event name">
+          <Field label="Event name" htmlFor="event-name">
             <input
+              id="event-name"
+              name="eventName"
               required
               minLength={2}
               value={eventName}
               onChange={(event) => setEventName(event.target.value)}
-              placeholder="A night people talk about"
+              placeholder="A night people talk about…"
             />
           </Field>
-          <Field label="Starts">
+          <Field label="Starts" htmlFor="event-start">
             <input
+              id="event-start"
+              name="eventStart"
               required
               type="datetime-local"
               value={eventStart}
               onChange={(event) => setEventStart(event.target.value)}
             />
           </Field>
-          <Field label="Ends">
+          <Field label="Ends" htmlFor="event-end">
             <input
+              id="event-end"
+              name="eventEnd"
               required
               type="datetime-local"
               value={eventEnd}

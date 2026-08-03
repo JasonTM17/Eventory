@@ -35,6 +35,20 @@ export function TicketQrCode({
   }, [payload]);
 
   if (error) return <p className="form-error">{error}</p>;
-  if (!dataUrl) return <div className="ticket-qr__loading" aria-label="Generating QR code" />;
-  return <img className="ticket-qr" src={dataUrl} alt={`Signed QR code for ticket ${code}`} />;
+  if (!dataUrl) {
+    return (
+      <div className="ticket-qr__loading" role="status" aria-live="polite">
+        Generating QR code…
+      </div>
+    );
+  }
+  return (
+    <img
+      className="ticket-qr"
+      src={dataUrl}
+      width={240}
+      height={240}
+      alt={`Signed QR code for ticket ${code}`}
+    />
+  );
 }

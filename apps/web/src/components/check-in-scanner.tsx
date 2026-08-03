@@ -169,16 +169,21 @@ export function CheckInScanner(): React.JSX.Element {
         >
           <Field
             label="Event session (optional)"
+            htmlFor="event-session-id"
             hint="If selected, a ticket from another session is rejected before mutation."
           >
             <input
+              id="event-session-id"
+              name="eventSessionId"
               value={eventSessionId}
               onChange={(event) => setEventSessionId(event.target.value)}
-              placeholder="Session UUID"
+              placeholder="Session UUID…"
             />
           </Field>
-          <Field label="QR payload">
+          <Field label="QR payload" htmlFor="qr-payload">
             <textarea
+              id="qr-payload"
+              name="qrPayload"
               className="scanner-input"
               required
               rows={5}

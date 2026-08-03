@@ -25,6 +25,9 @@ body {
   background: var(--paper);
   font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
 }
+:where(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 96px;
+}
 a {
   color: inherit;
   text-decoration: none;
@@ -43,7 +46,7 @@ a {
   font-weight: 700;
   transition: transform 0.18s ease;
 }
-.skip-link:focus {
+.skip-link:focus-visible {
   transform: translateY(0);
 }
 button,
@@ -706,6 +709,10 @@ a:focus-visible {
   font-size: 24px;
   letter-spacing: -0.05em;
 }
+.ticket-panel__cta {
+  width: 100%;
+  margin-top: 18px;
+}
 .ticket-row {
   display: flex;
   justify-content: space-between;
@@ -1173,12 +1180,17 @@ a:focus-visible {
   box-shadow: 0 5px 25px rgba(27, 40, 33, 0.09);
 }
 .ticket-qr__loading {
+  display: grid;
   width: 240px;
   height: 240px;
+  place-items: center;
   border-radius: 14px;
+  padding: 16px;
+  color: var(--muted);
   background: linear-gradient(110deg, #eef1eb 30%, #f8faf5 45%, #eef1eb 60%);
   background-size: 200% 100%;
   animation: ticket-qr-shimmer 1.2s linear infinite;
+  text-align: center;
 }
 .wallet-ticket__qr p,
 .scanner-note,

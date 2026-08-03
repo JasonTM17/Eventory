@@ -35,13 +35,16 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ label, tone = 'neutral' }) =
 
 export interface FieldProps extends HTMLAttributes<HTMLDivElement> {
   label: string;
+  htmlFor: string;
   hint?: string;
   children: ReactNode;
 }
 
-export const Field: FC<FieldProps> = ({ label, hint, children, className, ...props }) => (
+export const Field: FC<FieldProps> = ({ label, htmlFor, hint, children, className, ...props }) => (
   <div className={cx('ui-field', className)} {...props}>
-    <div className="ui-field__label">{label}</div>
+    <label className="ui-field__label" htmlFor={htmlFor}>
+      {label}
+    </label>
     {children}
     {hint ? <div className="ui-field__hint">{hint}</div> : null}
   </div>
