@@ -4,6 +4,8 @@ Eventory is a modular monolith with one web application and one API process. Pos
 
 ## System context
 
+![Eventory runtime topology rendered from the checked-in SVG source](../../assets/diagrams/eventory-runtime-architecture.png)
+
 ```mermaid
 flowchart LR
   attendee[Attendee]

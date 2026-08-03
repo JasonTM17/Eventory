@@ -7,6 +7,8 @@ coordination.
 
 ## Runtime topology
 
+![Eventory runtime topology rendered from the checked-in SVG source](../assets/diagrams/eventory-runtime-architecture.png)
+
 ```mermaid
 flowchart LR
   browser[Browser] --> web[Next.js standalone]

@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title description">
+  <title id="title">Eventory runtime architecture</title>
+  <desc id="description">A browser reaches a Next.js web application and a NestJS API. The API owns durable PostgreSQL records, expiring Redis holds, payment webhooks, notifications, and metrics.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#162120" flood-opacity="0.12" />
+    </filter>
+    <marker id="arrow-primary" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#28599F" />
+    </marker>
+    <marker id="arrow-control" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#B76418" />
+    </marker>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#66746F" />
+    </marker>
+    <style>
+      .title { font: 700 44px Arial, Helvetica, sans-serif; fill: #162120; letter-spacing: -1px; }
+      .subtitle { font: 400 19px Arial, Helvetica, sans-serif; fill: #52615D; }
+      .eyebrow { font: 700 13px Arial, Helvetica, sans-serif; fill: #6656D8; letter-spacing: 2px; }
+      .node-title { font: 700 24px Arial, Helvetica, sans-serif; fill: #162120; }
+      .node-copy { font: 400 16px Arial, Helvetica, sans-serif; fill: #52615D; }
+      .node-tag { font: 700 12px Arial, Helvetica, sans-serif; fill: #162120; letter-spacing: 1px; }
+      .small { font: 400 14px Arial, Helvetica, sans-serif; fill: #52615D; }
+      .label { font: 700 13px Arial, Helvetica, sans-serif; fill: #28599F; }
+      .label-control { font: 700 13px Arial, Helvetica, sans-serif; fill: #B76418; }
+      .legend { font: 600 13px Arial, Helvetica, sans-serif; fill: #52615D; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#F5F3ED" />
+  <rect x="48" y="42" width="1504" height="916" rx="34" fill="#FFFDF8" stroke="#D8DDD4" />
+  <text x="96" y="106" class="eyebrow">EVENTORY / RUNTIME TOPOLOGY</text>
+  <text x="96" y="162" class="title">One application, clear state ownership.</text>
+  <text x="96" y="198" class="subtitle">PostgreSQL owns permanent records; Redis owns only expiring seat holds and worker coordination.</text>
+  <line x1="96" y1="232" x2="1504" y2="232" stroke="#D8DDD4" />
+
+  <g filter="url(#shadow)">
+    <rect x="96" y="318" width="256" height="244" rx="24" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="96" y="318" width="256" height="48" rx="24" fill="#E8F8C9" />
+    <text x="122" y="350" class="node-tag">ENTRY</text>
+    <text x="122" y="410" class="node-title">Browser</text>
+    <text x="122" y="444" class="node-copy">Attendee discovery</text>
+    <text x="122" y="470" class="node-copy">Organizer studio</text>
+    <text x="122" y="496" class="node-copy">Ticket scanner</text>
+    <rect x="122" y="518" width="166" height="24" rx="12" fill="#F2F3EE" />
+    <text x="136" y="535" class="node-tag">HTTPS / WEBSOCKET</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="430" y="318" width="270" height="244" rx="24" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="430" y="318" width="270" height="48" rx="24" fill="#E6EDFF" />
+    <text x="456" y="350" class="node-tag">PRESENTATION</text>
+    <text x="456" y="410" class="node-title">Next.js web</text>
+    <text x="456" y="444" class="node-copy">App Router + SSR</text>
+    <text x="456" y="470" class="node-copy">Client seat map</text>
+    <text x="456" y="496" class="node-copy">Wallet + QR renderer</text>
+    <rect x="456" y="518" width="138" height="24" rx="12" fill="#F2F3EE" />
+    <text x="470" y="535" class="node-tag">UI BOUNDARY</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="790" y="280" width="364" height="332" rx="24" fill="#FFFFFF" stroke="#162120" stroke-width="2" />
+    <rect x="790" y="280" width="364" height="52" rx="24" fill="#B9F36E" />
+    <text x="818" y="314" class="node-tag">APPLICATION CORE</text>
+    <text x="818" y="378" class="node-title">NestJS API</text>
+    <text x="818" y="412" class="node-copy">Identity + authorization</text>
+    <text x="818" y="438" class="node-copy">Events, seating, bookings</text>
+    <text x="818" y="464" class="node-copy">Payments, tickets, analytics</text>
+    <line x1="818" y1="490" x2="1126" y2="490" stroke="#D8DDD4" />
+    <text x="818" y="523" class="small">Rate limits · signed QR · audit logs</text>
+    <text x="818" y="550" class="small">REST /api/v1 · Socket.IO /seating</text>
+    <rect x="818" y="568" width="220" height="24" rx="12" fill="#F2F3EE" />
+    <text x="833" y="585" class="node-tag">TRANSACTION BOUNDARY</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1230" y="278" width="270" height="138" rx="22" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="1230" y="278" width="270" height="42" rx="22" fill="#E6EDFF" />
+    <text x="1254" y="306" class="node-tag">DURABLE STATE</text>
+    <text x="1254" y="356" class="node-title">PostgreSQL</text>
+    <text x="1254" y="386" class="node-copy">Bookings, tickets, audits</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1230" y="466" width="270" height="138" rx="22" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="1230" y="466" width="270" height="42" rx="22" fill="#FFF0D0" />
+    <text x="1254" y="494" class="node-tag">EPHEMERAL STATE</text>
+    <text x="1254" y="544" class="node-title">Redis</text>
+    <text x="1254" y="574" class="node-copy">Atomic holds, queues, leases</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="106" y="700" width="282" height="170" rx="22" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="106" y="700" width="282" height="42" rx="22" fill="#FFF0D0" />
+    <text x="130" y="728" class="node-tag">PAYMENT EDGE</text>
+    <text x="130" y="778" class="node-title">Mock provider</text>
+    <text x="130" y="808" class="node-copy">Signed callback in local demo</text>
+    <text x="130" y="834" class="node-copy">Real provider adapter boundary</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="508" y="700" width="282" height="170" rx="22" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="508" y="700" width="282" height="42" rx="22" fill="#F1ECFF" />
+    <text x="532" y="728" class="node-tag">DELIVERY</text>
+    <text x="532" y="778" class="node-title">Mailpit / SMTP</text>
+    <text x="532" y="808" class="node-copy">Outbox notifications</text>
+    <text x="532" y="834" class="node-copy">Local inbox inspection</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="910" y="700" width="282" height="170" rx="22" fill="#FFFFFF" stroke="#C9D1CB" />
+    <rect x="910" y="700" width="282" height="42" rx="22" fill="#E6EDFF" />
+    <text x="934" y="728" class="node-tag">OBSERVABILITY</text>
+    <text x="934" y="778" class="node-title">Prometheus</text>
+    <text x="934" y="808" class="node-copy">Scrapes protected metrics</text>
+    <text x="934" y="834" class="node-copy">Grafana profile optional</text>
+  </g>
+
+  <path d="M352 398 L430 398" fill="none" stroke="#28599F" stroke-width="4" marker-end="url(#arrow-primary)" />
+  <rect x="353" y="360" width="80" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="367" y="378" class="label">HTTPS</text>
+
+  <path d="M700 398 L790 398" fill="none" stroke="#28599F" stroke-width="4" marker-end="url(#arrow-primary)" />
+  <rect x="701" y="360" width="84" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="715" y="378" class="label">SSR API</text>
+
+  <path d="M352 500 C490 645, 650 645, 790 528" fill="none" stroke="#66746F" stroke-width="3" stroke-dasharray="11 10" marker-end="url(#arrow-async)" />
+  <rect x="497" y="612" width="152" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="512" y="630" class="legend">REST + Socket.IO</text>
+
+  <path d="M1154 348 L1230 348" fill="none" stroke="#28599F" stroke-width="4" marker-end="url(#arrow-primary)" />
+  <rect x="1159" y="310" width="72" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="1172" y="328" class="label">Prisma</text>
+
+  <path d="M1154 530 L1230 530" fill="none" stroke="#66746F" stroke-width="3" stroke-dasharray="11 10" marker-end="url(#arrow-async)" />
+  <rect x="1159" y="542" width="70" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="1172" y="560" class="legend">holds</text>
+
+  <path d="M388 785 C560 650, 668 625, 790 548" fill="none" stroke="#B76418" stroke-width="4" marker-end="url(#arrow-control)" />
+  <rect x="510" y="673" width="151" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="525" y="691" class="label-control">signed webhook</text>
+
+  <path d="M914 612 L730 700" fill="none" stroke="#66746F" stroke-width="3" stroke-dasharray="11 10" marker-end="url(#arrow-async)" />
+  <rect x="746" y="650" width="92" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="759" y="668" class="legend">outbox</text>
+
+  <path d="M1051 700 L1030 612" fill="none" stroke="#66746F" stroke-width="3" stroke-dasharray="11 10" marker-end="url(#arrow-async)" />
+  <rect x="1060" y="647" width="84" height="26" rx="13" fill="#FFFFFF" stroke="#D8DDD4" />
+  <text x="1073" y="665" class="legend">/metrics</text>
+
+  <line x1="96" y1="910" x2="1504" y2="910" stroke="#D8DDD4" />
+  <line x1="112" y1="934" x2="150" y2="934" stroke="#28599F" stroke-width="4" marker-end="url(#arrow-primary)" />
+  <text x="162" y="939" class="legend">synchronous request</text>
+  <line x1="366" y1="934" x2="404" y2="934" stroke="#66746F" stroke-width="3" stroke-dasharray="9 8" marker-end="url(#arrow-async)" />
+  <text x="416" y="939" class="legend">asynchronous or expiring state</text>
+  <line x1="748" y1="934" x2="786" y2="934" stroke="#B76418" stroke-width="4" marker-end="url(#arrow-control)" />
+  <text x="798" y="939" class="legend">external control callback</text>
+</svg>

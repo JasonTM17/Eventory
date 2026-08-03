@@ -13,14 +13,17 @@
    profile, dependency audit fixes.
 7. Docker images, Compose app services, CI workflows, and release docs.
 8. Release hardening for durable checkout claims, monotonic payment recovery,
-   reconciliation workers, owned integration tests, WebSocket handshakes, QR
-   keyrings, and a verified local portfolio preview.
+   reconciliation workers, owned integration tests, browser-compatible trusted
+   WebSocket handshakes, QR keyrings, and a verified local portfolio preview.
+9. Exact private-workspace package payload checks, real product GIF/screenshots,
+   and exported runtime/booking diagrams.
 
-The current local verification baseline is `pnpm test:integration` with 17
-suites, 46 tests, and 0 failures, plus format, lint, typecheck, web build,
-audit, Prisma validation, and Compose config checks. A new remote workflow run
-for local-only commits, a public deployment URL, and a license remain release
-decisions rather than undocumented assumptions.
+The current local verification baseline is 17 API suites with 47 tests and 0
+failures against an owned Compose dependency project, plus the web storage
+regression, format, lint, typecheck, package payload, web build, audit, Prisma
+validation, and Compose config checks. A new remote workflow run for local-only
+commits, a public deployment URL, and a license remain release decisions rather
+than undocumented assumptions.
 
 ## Next increments
 

@@ -38,6 +38,11 @@ repository.
 Production release remains blocked until phases 1–3 meet their acceptance
 criteria and the unresolved financial-reconciliation and QR-rotation decisions
 are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
+The user-authorized follow-up expands Phase 4 with reproducible product media
+and published architecture artifacts, adds Phase 12 for package delivery
+verification and remote CI evidence, and adds Phase 13 for explicitly requested
+Docker Hub publication after those gates pass. It does not invent a public
+deployment or license.
 
 ## Phases
 
@@ -46,7 +51,9 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 | 1 | [Session security](./phase-01-session-security.md) | Completed |
 | 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Completed |
 | 3 | [Operational resilience](./phase-03-operational-resilience.md) | In Progress |
-| 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | In Progress |
+| 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Completed |
+| 12 | [Package delivery verification](./phase-12-package-delivery-verification.md) | In Progress |
+| 13 | [Docker Hub image publication](./phase-13-docker-hub-publication.md) | Pending |
 
 ## Dependencies
 
@@ -56,6 +63,11 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
   validate their final contracts before green-lighting release.
 - Phase 4 requires a green CI run and a real public demo URL before setting a
   GitHub homepage.
+- Phase 12 consumes the media/docs completed in Phase 4, adds a shared-package
+  tarball gate, then pushes the verified `main` history and records the remote
+  workflow result.
+- Phase 13 consumes Phase 12's verified commit and CI evidence, then publishes
+  only the explicitly authorized Docker Hub API/web images.
 
 ## Release Acceptance Criteria
 
@@ -79,6 +91,14 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
   worker cycles, and covered by a focused regression.
 - [x] The public README accurately communicates the demo scope and has visual
   proof only after the release gate is green.
+- [x] README includes a short real-product GIF and exported architecture
+  diagrams without secrets, PII, local file paths, or production claims.
+- [x] Shared workspace-package dry runs contain only intentional publishable
+  files and run in local and GitHub Actions validation.
+- [ ] The verified `main` history is pushed to `origin/main` and its new GitHub
+  Actions validation result is recorded.
+- [ ] Verified API and web images are published to Docker Hub with semantic and
+  full-SHA tags and recorded immutable digests.
 
 The local release gate is green for the current worktree. The unchecked CI
 criterion is intentionally limited to a new remote run for these unpushed
@@ -94,6 +114,9 @@ commits; the latest observed `main` run predates this work.
 6. `fix(workers): guard outbox processing failures`
 7. `fix(realtime): enforce seating gateway handshakes`
 8. `docs(readme): add verified project showcase`
+9. `build(packages): verify shared package payloads`
+10. `docs(showcase): add real media and architecture artifacts`
+11. `fix(realtime): return browser CORS headers for trusted seating sockets`
 
 ## Unresolved Questions
 
@@ -123,7 +146,7 @@ commits; the latest observed `main` run predates this work.
 | 1 | Provider call precedes durable checkout claim | Critical | Accept | Phase 2 |
 | 2 | Late captured payment lacks compensation path | Critical | Accept | Phase 2, Phase 3 |
 | 3 | Webhook and expiry writers lack one transition contract | High | Accept | Phase 2, Phase 3 |
-| 4 | Unique-hold migration needs staged forward rollout | High | Accept | Phase 2 |
+| 4 | Unique-hold migration needs staged forward rollout | High | Accept | In Progress |
 | 5 | All session-cookie routes need origin coverage | Medium | Accept | Phase 1 |
 | 6 | Checkout key must be hold-scoped | High | Accept | Phase 2 |
 | 7 | Test target must be an owned dependencies-only environment | High | Accept | Phase 3 |
@@ -148,11 +171,24 @@ commits; the latest observed `main` run predates this work.
 - Phase 2: durable hold/provider claims, monotonic webhook transitions, late
   capture reconciliation, and idempotency regressions pass; clean and duplicate
   migration rehearsals also pass.
-- Phase 3: `pnpm test:integration` passes against an owned dynamic Compose
-  project with 17 suites, 46 tests, and 0 failures; the native WebSocket origin
-  test is included. Typecheck, lint, format, web build, audit, DB validation,
-  and Compose config validation pass locally.
-- Portfolio: two screenshots were captured from the seeded local product and
-  linked from README. No public URL, license, or GitHub metadata was invented.
+- Phase 3: all 17 API suites and 47 tests pass against an owned dynamic Compose
+  project; native WebSocket and browser-polling origin tests are included.
+  Typecheck, lint, format, web build, audit, DB validation, and Compose config
+  validation pass locally.
+- Portfolio: three screenshots and one short GIF were captured from the seeded
+  local product; two architecture/lifecycle diagrams were exported as SVG and
+  PNG. No public URL, license, or GitHub metadata was invented.
 - Remote GitHub CI for the unpushed commits is not verified; keep that release
   criterion open until the owner authorizes a push or runs it externally.
+
+## Follow-up scope — 2026-08-03
+
+- Phase 4 now owns a current-source isolated Compose capture, a short GIF
+  assembled only from real product frames, a ticket-wallet screenshot, and
+  exported SVG/PNG diagrams that match the documented runtime and ticket flow.
+- Phase 12 owns shared-package payload allow-lists, a root `package:check`
+  command, matching CI gates, full local validation, commit/push, and remote
+  workflow evidence.
+- Out of scope: selecting a license, publishing npm packages, changing GitHub
+  homepage metadata, deploying a public environment, or replacing the mock
+  payment provider. Docker Hub image publication is now in explicit Phase 13.

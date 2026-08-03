@@ -2,13 +2,13 @@
 
 ## Test pyramid
 
-| Layer         | Scope                                     | Examples                                                           |
-| ------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| Unit          | Pure policies, signing, guards, parsers   | QR payload verification, password policy, rate-limit budget        |
-| Integration   | Nest module + real PostgreSQL/Redis       | identity sessions, organizations, event inventory, outbox delivery |
-| Concurrency   | Competing requests against the same state | seat holds and eight simultaneous QR scans                         |
-| Contract/UI   | Shared DTOs and Next.js routes            | discovery, seat selection, checkout, ticket wallet, admin console  |
-| Build/quality | Repository-wide regressions               | format, ESLint, TypeScript, Prisma validation, web/API builds      |
+| Layer         | Scope                                     | Examples                                                             |
+| ------------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| Unit          | Pure policies, signing, guards, parsers   | QR payload verification, password policy, rate-limit budget          |
+| Integration   | Nest module + real PostgreSQL/Redis       | identity sessions, organizations, event inventory, outbox delivery   |
+| Concurrency   | Competing requests against the same state | seat holds and eight simultaneous QR scans                           |
+| Contract/UI   | Shared DTOs and Next.js routes            | discovery, seat selection, checkout hold cleanup, ticket wallet      |
+| Build/quality | Repository-wide regressions               | format, ESLint, TypeScript, package payloads, Prisma, web/API builds |
 
 ## Local prerequisites
 
@@ -30,6 +30,8 @@ boundary. A wrong database or unavailable dependency fails before migrations.
 pnpm format:check
 pnpm lint
 pnpm typecheck
+pnpm package:check
+pnpm --filter @eventory/web test
 pnpm test:integration
 pnpm --filter @eventory/web build
 pnpm --filter @eventory/api db:validate
@@ -53,9 +55,10 @@ node --require ts-node/register --test test/check-in.e2e.test.ts
   then organizations and venues. Do not use `down --volumes` as a test helper.
 - Each concurrent scenario asserts both the winning result and all losing
   results; a happy-path response alone is insufficient.
-- `apps/api/test/seating-websocket.e2e.test.ts` exercises a real native
-  WebSocket handshake and proves trusted origins connect while hostile origins
-  are rejected before application traffic begins.
+- `apps/api/test/seating-websocket.e2e.test.ts` exercises native WebSocket and
+  browser-style Engine.IO polling handshakes. It proves trusted origins receive
+  credentialed CORS headers while hostile origins are rejected before
+  application traffic begins.
 - Generated Prisma/config output is rebuilt when source environment parsing
   changes so ts-node tests exercise current contracts.
 - The dependencies-only Compose target has no application or outbox worker;
@@ -74,7 +77,8 @@ Every sensitive route should have a success and a failure assertion for:
 
 ## CI acceptance
 
-CI must run the same format, lint, typecheck, API tests, web build, Prisma
-validation, and migration checks as local development. Docker image builds are
-an additional packaging gate; external deployment credentials are never needed
-for pull requests.
+CI must run the same format, lint, typecheck, private-workspace package
+dry-run, focused web regression, API tests, web build, Prisma validation, and
+migration checks as local development. Docker image builds are an additional
+packaging gate; external deployment credentials are never needed for pull
+requests.

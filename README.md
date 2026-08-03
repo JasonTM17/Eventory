@@ -20,14 +20,20 @@ images, and operational runbooks are maintained alongside the code.
 
 ## Product preview
 
-These screenshots were captured from the seeded local Compose stack and show
-the public discovery and seat-selection flows. Payment and email delivery are
-deterministic local integrations; this repository does not claim a public demo
-or a production payment-provider connection.
+These artifacts were captured from a seeded, isolated local Compose stack and
+show the public discovery, seat-selection, checkout, and ticket-wallet flows.
+Payment and email delivery are deterministic local integrations; this
+repository does not claim a public demo or a production payment-provider
+connection. The wallet screenshot redacts its locally generated signed QR
+payload before it is committed.
 
 ![Eventory public event discovery showing a seeded event](./assets/images/eventory-demo-discovery.png)
 
-![Eventory seat map showing available seats for the seeded event](./assets/images/eventory-demo-seats.png)
+![Eventory seat map showing one selected seat in the seeded event](./assets/images/eventory-demo-seats.png)
+
+![Eventory booking flow from event page through confirmed checkout](./assets/images/eventory-demo-booking-flow.gif)
+
+![Eventory attendee wallet showing an issued ticket with its local demo QR payload redacted](./assets/images/eventory-demo-ticket-wallet.png)
 
 ## Prerequisites
 
@@ -65,6 +71,8 @@ ports or secrets. Never use the local defaults in production.
 pnpm format:check
 pnpm lint
 pnpm typecheck
+pnpm package:check
+pnpm --filter @eventory/web test
 pnpm test:integration
 pnpm --filter @eventory/web build
 pnpm audit --prod
@@ -82,12 +90,27 @@ only that project. It never starts the application or outbox workers.
 
 ## Architecture
 
+![Eventory runtime architecture: browser, web, API, PostgreSQL, Redis, integrations, and observability](./assets/diagrams/eventory-runtime-architecture.png)
+
+![Eventory booking lifecycle: selected seat, Redis hold, pending booking, payment callback, durable ticket, and QR check-in](./assets/diagrams/eventory-booking-lifecycle.png)
+
 Read the [system overview](./docs/architecture/system-overview.md), [component boundaries](./docs/architecture/component-diagram.md), and [implementation plan](./docs/implementation-plan.md) before changing a module. Important trade-offs are recorded as ADRs under [`docs/adr`](./docs/adr).
 
 The concise [codebase summary](./docs/codebase-summary.md), [architecture
 guide](./docs/system-architecture.md), [code standards](./docs/code-standards.md),
 [PDR](./docs/project-overview-pdr.md), and [roadmap](./docs/project-roadmap.md)
 are useful onboarding entry points.
+
+## Workspace package delivery
+
+Every workspace package is private. `pnpm package:check` builds the compiled
+configuration package, dry-runs config/contracts/UI/ESLint/TypeScript tarballs,
+and compares every payload against an exact allow-list. The verifier also fails
+when a declared `main` or `types` entrypoint is absent. Config ships `dist`,
+contracts and UI retain their intentional source entrypoints, and the root
+ESLint configuration consumes the packaged shared preset. This validates the
+npm boundary without publishing the private workspaces; application containers
+are released separately.
 
 ## Development rules
 
