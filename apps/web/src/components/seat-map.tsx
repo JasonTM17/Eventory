@@ -33,6 +33,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [salesOpen, setSalesOpen] = useState(false);
   const [live, setLive] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -42,6 +43,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
         `/seating/${eventSessionId}/availability`,
       );
       setSeats(response.seats);
+      setSalesOpen(response.event.status === 'SALES_OPEN');
       setError('');
     } catch (requestError) {
       setError(
@@ -124,7 +126,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
   }, [seats]);
 
   function toggleSeat(seat: SeatAvailability): void {
-    if (hold || seat.status !== 'available') return;
+    if (!salesOpen || hold || seat.status !== 'available') return;
     setSelected((current) =>
       current.includes(seat.seatId)
         ? current.filter((id) => id !== seat.seatId)
@@ -148,12 +150,11 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
       setSecondsLeft(Math.ceil((new Date(response.expiresAt).getTime() - Date.now()) / 1_000));
       setMessage('Seats are held for you. Continue to checkout before the timer ends.');
     } catch (requestError) {
-      setError(
-        isApiError(requestError)
-          ? (requestError.body.message ?? 'Those seats were just taken.')
-          : 'The seating service is unavailable.',
-      );
+      const errorMessage = isApiError(requestError)
+        ? (requestError.body.message ?? 'Those seats were just taken.')
+        : 'The seating service is unavailable.';
       await refresh();
+      setError(errorMessage);
     } finally {
       setBusy(false);
     }
@@ -200,7 +201,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
             <span className="seat-row__label">{row}</span>
             {rowSeats.map((seat) => {
               const isSelected = selected.includes(seat.seatId);
-              const isDisabled = seat.status !== 'available' || Boolean(hold);
+              const isDisabled = !salesOpen || seat.status !== 'available' || Boolean(hold);
               return (
                 <button
                   type="button"
@@ -220,19 +221,19 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
       </div>
       <div className="seat-legend">
         <span>
-          <i className="seat-dot seat-dot--available" />
+          <i aria-hidden="true" className="seat-dot seat-dot--available" />
           Available
         </span>
         <span>
-          <i className="seat-dot seat-dot--selected" />
+          <i aria-hidden="true" className="seat-dot seat-dot--selected" />
           Selected
         </span>
         <span>
-          <i className="seat-dot seat-dot--held" />
+          <i aria-hidden="true" className="seat-dot seat-dot--held" />
           Held
         </span>
         <span>
-          <i className="seat-dot seat-dot--sold" />
+          <i aria-hidden="true" className="seat-dot seat-dot--sold" />
           Unavailable
         </span>
       </div>
@@ -253,8 +254,14 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
         </div>
       ) : (
         <div className="seat-map-card__footer">
-          <span>{selected.length ? `${selected.length} selected` : 'Select up to 12 seats'}</span>
-          <Button onClick={createHold} disabled={!selected.length || busy}>
+          <span>
+            {salesOpen
+              ? selected.length
+                ? `${selected.length} selected`
+                : 'Select up to 12 seats'
+              : 'Sales open soon'}
+          </span>
+          <Button onClick={createHold} disabled={!salesOpen || !selected.length || busy}>
             {busy ? 'Holding…' : 'Hold seats'}
           </Button>
         </div>

@@ -4,6 +4,7 @@ import { Container } from '@eventory/ui';
 import type { EventSummary } from '@eventory/contracts';
 import { SeatMap } from '../../../../../src/components/seat-map';
 import { apiRequest, isApiError } from '../../../../../src/lib/api';
+import { formatDate } from '../../../../../src/lib/format';
 
 interface SeatPageProps {
   params: Promise<{ eventIdOrSlug: string; eventSessionId: string }>;
@@ -54,7 +55,7 @@ export default async function SeatSelectionPage({
           <p>
             {session.name}
             <br />
-            {new Date(session.startAt).toLocaleString()}
+            {formatDate(session.startAt, event.timezone)}
           </p>
         </div>
         <SeatMap eventSessionId={eventSessionId} eventName={event.name} />

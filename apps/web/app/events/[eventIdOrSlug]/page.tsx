@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Button, Card, Container, StatusBadge } from '@eventory/ui';
+import { Card, Container, StatusBadge } from '@eventory/ui';
 import type { EventSummary } from '@eventory/contracts';
 import { apiRequest, isApiError } from '../../../src/lib/api';
 import { formatDate, formatMoney, statusTone } from '../../../src/lib/format';
@@ -31,6 +31,9 @@ export default async function EventDetailPage({
     if (isApiError(error, 404)) notFound();
     throw error;
   }
+  const firstSession = event.sessions[0];
+  const seatsHref = firstSession ? `/events/${event.slug}/seats/${firstSession.id}` : undefined;
+  const signInHref = seatsHref ? `/login?next=${encodeURIComponent(seatsHref)}` : '/login';
   return (
     <div className="page-shell">
       <Container>
@@ -59,7 +62,7 @@ export default async function EventDetailPage({
                 <strong>{event.sessions.length} programmed</strong>
               </div>
             </div>
-            <Link className="text-link" href="/login">
+            <Link className="text-link" href={signInHref}>
               Sign in to reserve a seat ↗
             </Link>
           </div>
@@ -79,9 +82,9 @@ export default async function EventDetailPage({
             ) : (
               <p className="empty-state">Tickets are not on sale yet.</p>
             )}
-            {event.sessions[0] ? (
-              <Link href={`/events/${event.slug}/seats/${event.sessions[0].id}`}>
-                <Button style={{ width: '100%', marginTop: 18 }}>Continue to seats</Button>
+            {seatsHref ? (
+              <Link className="ui-button ui-button--primary ticket-panel__cta" href={seatsHref}>
+                Continue to seats
               </Link>
             ) : null}
           </Card>
