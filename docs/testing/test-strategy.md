@@ -12,21 +12,17 @@
 
 ## Local prerequisites
 
-Start the dependency services and apply migrations before API integration
-tests:
+Run the owned integration target for API integration tests:
 
 ```powershell
-docker compose up -d postgres redis mailpit
-$env:DATABASE_URL='postgresql://eventory:eventory@127.0.0.1:55434/eventory?schema=public'
-$env:REDIS_URL='redis://127.0.0.1:56381'
-$env:MAILPIT_PORT='11026'
-$env:OUTBOX_WORKER_ENABLED='false'
-pnpm db:migrate
-pnpm --filter @eventory/config build
+pnpm test:integration
 ```
 
-Use the ports from `.env` if another local mapping is configured. Tests never
-call a real payment or email provider; Mailpit is the local SMTP boundary.
+The runner starts only PostgreSQL, Redis, and Mailpit in a unique Compose
+project, discovers dynamic host ports, verifies the `eventory_test` database
+sentinel, applies migrations, and then starts tests with both workers disabled.
+Tests never call a real payment or email provider; Mailpit is the local SMTP
+boundary. A wrong database or unavailable dependency fails before migrations.
 
 ## Commands
 
@@ -34,13 +30,13 @@ call a real payment or email provider; Mailpit is the local SMTP boundary.
 pnpm format:check
 pnpm lint
 pnpm typecheck
-pnpm --filter @eventory/api test
+pnpm test:integration
 pnpm --filter @eventory/web build
 pnpm --filter @eventory/api db:validate
 ```
 
-For a focused API e2e file, run it from `apps/api` with the test environment
-variables above:
+For a focused API test file, first run the owned dependency target or provide
+equivalent `eventory_test`/Redis services, then run it from `apps/api`:
 
 ```powershell
 node --require ts-node/register --test test/check-in.e2e.test.ts
@@ -59,6 +55,8 @@ node --require ts-node/register --test test/check-in.e2e.test.ts
   results; a happy-path response alone is insufficient.
 - Generated Prisma/config output is rebuilt when source environment parsing
   changes so ts-node tests exercise current contracts.
+- The dependencies-only Compose target has no application or outbox worker;
+  test assertions cannot be consumed by a concurrently running worker.
 
 ## Security and failure matrix
 

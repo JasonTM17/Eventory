@@ -49,7 +49,7 @@ ports or secrets. Never use the local defaults in production.
 pnpm format:check
 pnpm lint
 pnpm typecheck
-pnpm --filter @eventory/api test
+pnpm test:integration
 pnpm --filter @eventory/web build
 pnpm audit --prod
 docker compose config --quiet
@@ -58,6 +58,11 @@ docker compose config --quiet
 Enable local Prometheus/Grafana with
 `docker compose --profile monitoring up -d prometheus grafana`; see the
 [observability guide](./docs/architecture/observability.md).
+
+`pnpm test:integration` owns a temporary dependencies-only Compose project. It
+publishes PostgreSQL, Redis, and Mailpit on dynamic ports, proves the database
+is `eventory_test`, applies migrations there, runs the API suite, and cleans up
+only that project. It never starts the application or outbox workers.
 
 ## Architecture
 

@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: 'Operational resilience'
-status: pending
+status: in-progress
 priority: P1
 effort: '1-2d'
 dependencies: [1, 2]
@@ -146,3 +146,12 @@ enforcement; rate limiting belongs at the gateway/edge boundary.
 - Covers availability and misconfiguration risks (OWASP A05/A06/A09).
 - Preserve masked secrets in CI logs and avoid putting connection strings in
   committed test helpers.
+
+## Verification snapshot — 2026-08-03
+
+Implemented and locally verified: clean typecheck dependency graph, owned
+dependencies-only integration runner, guarded outbox/booking workers, gateway
+handshake and pressure limits, and compatible QR signing key rotation. The
+integration suite cannot run on the current workstation because Docker
+Desktop's Linux engine is unavailable; keep the phase open until CI or a
+working Docker host confirms the full API suite.

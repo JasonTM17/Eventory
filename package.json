@@ -17,6 +17,7 @@
     "validate:env": "tsx scripts/validate-environment.ts",
     "check:dependencies": "node scripts/check-dependencies.mjs",
     "wait:dependencies": "node scripts/check-dependencies.mjs --wait",
+    "test:integration": "node scripts/run-integration-tests.mjs",
     "db:migrate": "pnpm --filter @eventory/api db:migrate",
     "db:seed": "pnpm --filter @eventory/api db:seed"
   },

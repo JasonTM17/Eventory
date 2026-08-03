@@ -45,7 +45,7 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 |-------|------|--------|
 | 1 | [Session security](./phase-01-session-security.md) | Completed |
 | 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | In Progress |
-| 3 | [Operational resilience](./phase-03-operational-resilience.md) | Pending |
+| 3 | [Operational resilience](./phase-03-operational-resilience.md) | In Progress |
 | 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Pending |
 
 ## Dependencies
@@ -138,3 +138,13 @@ are explicitly resolved. Phase 4 is intentionally optional for runtime safety.
 - Unresolved contradictions: 0. Product decisions remain explicitly listed
   above and block a production-ready claim, not plan execution of the other
   corrective work.
+
+## Verification snapshot — 2026-08-03
+
+- Phase 2 implementation and focused provider/worker/gateway/QR tests are in
+  the worktree; clean and duplicate-data migration rehearsals pass locally.
+- Phase 3 static gates, web build, audit, Compose validation, guarded workers,
+  gateway limits, and QR keyring coverage pass locally.
+- The dependencies-only integration suite remains unverified on this machine
+  because Docker Desktop's Linux engine is unavailable. Phase 3 and the overall
+  plan remain in progress until a clean CI/integration run is green.
