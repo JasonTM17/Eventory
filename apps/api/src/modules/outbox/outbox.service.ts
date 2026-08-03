@@ -18,6 +18,7 @@ interface ClaimedOutboxEvent {
 @Injectable()
 export class OutboxService {
   private readonly logger = new Logger(OutboxService.name);
+  private claimFailureCount = 0;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -26,15 +27,32 @@ export class OutboxService {
 
   async processOnce(limit = 20): Promise<number> {
     const safeLimit = Math.max(1, Math.min(Math.trunc(limit), 100));
-    const claimed = await this.claim(safeLimit);
+    let claimed: ClaimedOutboxEvent[];
+    try {
+      claimed = await this.claim(safeLimit);
+    } catch (error) {
+      this.claimFailureCount += 1;
+      this.logger.error(`Outbox claim failed: ${this.safeError(error)}`);
+      return 0;
+    }
     for (const event of claimed) {
       try {
         await this.dispatch(event);
       } catch (error) {
-        await this.markFailure(event, error);
+        try {
+          await this.markFailure(event, error);
+        } catch (markFailureError) {
+          this.logger.error(
+            `Outbox failure state could not be persisted for ${event.id}: ${this.safeError(markFailureError)}`,
+          );
+        }
       }
     }
     return claimed.length;
+  }
+
+  getClaimFailureCount(): number {
+    return this.claimFailureCount;
   }
 
   private async claim(limit: number): Promise<ClaimedOutboxEvent[]> {

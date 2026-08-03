@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { BookingStatus, OutboxStatus, PaymentStatus } from '../../generated/prisma/client.js';
+import {
+  BookingStatus,
+  OutboxStatus,
+  PaymentReconciliationStatus,
+  PaymentStatus,
+} from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infrastructure/database/prisma.service.js';
 import { RedisService } from '../../infrastructure/redis/redis.service.js';
+import { OutboxService } from '../../modules/outbox/outbox.service.js';
 
 interface HttpMetric {
   count: number;
@@ -15,6 +21,7 @@ export class MetricsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
+    private readonly outbox: OutboxService,
   ) {}
 
   observeHttp(method: string, route: string, status: number, durationMs: number): void {
@@ -51,13 +58,17 @@ export class MetricsService {
       );
     }
 
-    const [bookings, payments, checkIns, outboxPending, activeHolds] = await Promise.all([
-      this.prisma.booking.count().catch(() => 0),
-      this.prisma.payment.count({ where: { status: PaymentStatus.SUCCEEDED } }).catch(() => 0),
-      this.prisma.ticketCheckIn.count().catch(() => 0),
-      this.prisma.outboxEvent.count({ where: { status: OutboxStatus.PENDING } }).catch(() => 0),
-      this.redis.count('eventory:seat-hold:*').catch(() => 0),
-    ]);
+    const [bookings, payments, checkIns, outboxPending, activeHolds, reconciliations] =
+      await Promise.all([
+        this.prisma.booking.count().catch(() => 0),
+        this.prisma.payment.count({ where: { status: PaymentStatus.SUCCEEDED } }).catch(() => 0),
+        this.prisma.ticketCheckIn.count().catch(() => 0),
+        this.prisma.outboxEvent.count({ where: { status: OutboxStatus.PENDING } }).catch(() => 0),
+        this.redis.count('eventory:seat-hold:*').catch(() => 0),
+        this.prisma.paymentReconciliation
+          .count({ where: { status: PaymentReconciliationStatus.OPEN } })
+          .catch(() => 0),
+      ]);
 
     lines.push('# HELP eventory_bookings_total Bookings stored in the database.');
     lines.push('# TYPE eventory_bookings_total gauge');
@@ -73,6 +84,14 @@ export class MetricsService {
     lines.push('# HELP eventory_outbox_pending Pending outbox events.');
     lines.push('# TYPE eventory_outbox_pending gauge');
     lines.push(`eventory_outbox_pending ${outboxPending}`);
+    lines.push('# HELP eventory_outbox_claim_failures_total Outbox claim failures.');
+    lines.push('# TYPE eventory_outbox_claim_failures_total counter');
+    lines.push(`eventory_outbox_claim_failures_total ${this.outbox.getClaimFailureCount()}`);
+    lines.push(
+      '# HELP eventory_payment_reconciliations_open Payments captured without automatic fulfillment.',
+    );
+    lines.push('# TYPE eventory_payment_reconciliations_open gauge');
+    lines.push(`eventory_payment_reconciliations_open ${reconciliations}`);
     lines.push('# HELP eventory_active_seat_holds Active seat holds in Redis.');
     lines.push('# TYPE eventory_active_seat_holds gauge');
     lines.push(`eventory_active_seat_holds ${activeHolds}`);

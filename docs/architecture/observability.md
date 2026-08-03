@@ -28,6 +28,8 @@ user, event, booking, ticket, or provider identifiers.
 | `eventory_active_seat_holds`              | Redis hold keys                      |
 | `eventory_checkins_total`                 | Durable ticket check-ins             |
 | `eventory_outbox_pending`                 | Pending outbox events                |
+| `eventory_outbox_claim_failures_total`    | Failed outbox claims                 |
+| `eventory_payment_reconciliations_open`   | Captures awaiting manual resolution  |
 
 ## Local monitoring profile
 
