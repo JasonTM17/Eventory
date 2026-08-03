@@ -27,7 +27,10 @@ interface SeatingSocketData {
 
 @WebSocketGateway({
   namespace: '/seating',
-  cors: { origin: false, credentials: true },
+  // Engine.IO creates its CORS middleware before Nest can inject ConfigService.
+  // Reflect the request origin for browser headers; allowRequest below remains
+  // the trust boundary and rejects every origin outside CORS_ORIGINS.
+  cors: { origin: true, credentials: true },
 })
 export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -52,12 +55,6 @@ export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGat
         return;
       }
       callback('SEATING_ORIGIN_DENIED', false);
-    };
-    engine.opts.cors = {
-      origin: (origin, callback) => {
-        callback(null, !origin || isTrustedOrigin(origin, this.allowedOrigins));
-      },
-      credentials: true,
     };
   }
 
@@ -121,7 +118,7 @@ export class SeatingGateway implements OnGatewayInit, OnGatewayConnection, OnGat
   publishSeatChange(
     eventSessionId: string,
     seatIds: string[],
-    state: 'held' | 'available',
+    state: 'held' | 'available' | 'blocked' | 'sold',
     expiresAt?: string,
   ): void {
     if (!this.server) return;

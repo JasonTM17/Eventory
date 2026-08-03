@@ -83,4 +83,31 @@ describe('seating WebSocket handshake', { concurrency: false }, () => {
     trusted.close();
     await assertRejectedWithOrigin(url, 'https://attacker.example');
   });
+
+  it('returns browser CORS headers only after a trusted polling handshake', async () => {
+    const endpoint = `${url}/socket.io/?EIO=4&transport=polling`;
+    const response = await fetch(endpoint, {
+      headers: { Origin: 'http://localhost:3000' },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+    assert.equal(response.headers.get('access-control-allow-credentials'), 'true');
+
+    const handshake = (await response.text()).slice(1);
+    const { sid } = JSON.parse(handshake) as { sid: string };
+    await fetch(`${endpoint}&sid=${encodeURIComponent(sid)}`, {
+      method: 'POST',
+      headers: {
+        Origin: 'http://localhost:3000',
+        'content-type': 'text/plain;charset=UTF-8',
+      },
+      body: '1',
+    });
+
+    const rejected = await fetch(endpoint, {
+      headers: { Origin: 'https://attacker.example' },
+    });
+    assert.equal(rejected.status, 403);
+  });
 });
