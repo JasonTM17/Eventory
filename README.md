@@ -3,6 +3,7 @@
 Eventory is a production-oriented full-stack event ticketing platform. It is designed as a modular monolith so the project can demonstrate reliable booking, real-time seat holds, simulated payments, signed QR tickets, authorization, observability, testing, and delivery automation without pretending that every feature needs a separate service.
 
 [![Main validation](https://github.com/JasonTM17/Eventory/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/JasonTM17/Eventory/actions/workflows/main.yml)
+[![Release containers](https://github.com/JasonTM17/Eventory/actions/workflows/release.yml/badge.svg)](https://github.com/JasonTM17/Eventory/actions/workflows/release.yml)
 
 ## Repository status
 
@@ -112,18 +113,21 @@ ESLint configuration consumes the packaged shared preset. This validates the
 npm boundary without publishing the private workspaces; application containers
 are released separately.
 
-## Container images
+## Release packages
 
-The verified `0.1.0` application images are public on Docker Hub:
+Release `0.1.1` publishes the application images to both registries:
 
-- [`nguyenson1710/eventory-api`](https://hub.docker.com/r/nguyenson1710/eventory-api) — `0.1.0` or `sha-d66e7b643bf603fdec2e2fb0486e5444f515df87`
-- [`nguyenson1710/eventory-web`](https://hub.docker.com/r/nguyenson1710/eventory-web) — `0.1.0` or `sha-d66e7b643bf603fdec2e2fb0486e5444f515df87`
+| Service | GitHub Container Registry                                                                                            | Docker Hub                                                                                |
+| ------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| API     | [`ghcr.io/jasontm17/eventory-api:0.1.1`](https://github.com/users/JasonTM17/packages/container/package/eventory-api) | [`nguyenson1710/eventory-api:0.1.1`](https://hub.docker.com/r/nguyenson1710/eventory-api) |
+| Web     | [`ghcr.io/jasontm17/eventory-web:0.1.1`](https://github.com/users/JasonTM17/packages/container/package/eventory-web) | [`nguyenson1710/eventory-web:0.1.1`](https://hub.docker.com/r/nguyenson1710/eventory-web) |
 
-Use the full-SHA tags or recorded digests in the
-[deployment guide](./docs/deployment-guide.md) for reproducible pulls. Registry
-publication is not a public deployment: the API still requires reviewed
-runtime secrets and services, and the web image was built with the local-stack
-API URL.
+The [GitHub Release](https://github.com/JasonTM17/Eventory/releases/tag/v0.1.1)
+records immutable digests and the full source-SHA tags. OCI provenance and SBOM
+attestations accompany each image. Registry publication is not a public
+deployment: the API still requires reviewed runtime secrets and services, and
+the web image uses the local-stack API URL unless rebuilt with
+`NEXT_PUBLIC_API_BASE_URL`.
 
 ## Development rules
 

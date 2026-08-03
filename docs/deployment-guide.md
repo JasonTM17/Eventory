@@ -47,6 +47,27 @@ Pull requests run the full quality matrix and build both images. The main
 workflow tags images with the commit SHA and uploads compressed image archives;
 it does not deploy or require production credentials.
 
+Semantic version tags run the release workflow. It verifies that every
+workspace manifest matches the tag, builds each image once, and publishes the
+same OCI manifest to Docker Hub and GitHub Container Registry with semantic,
+`latest`, and full source-SHA tags. The workflow also publishes provenance and
+SBOM attestations. Immutable digests are recorded in the corresponding GitHub
+Release.
+
+Release `0.1.1` is available from both registries:
+
+```bash
+docker pull ghcr.io/jasontm17/eventory-api:0.1.1
+docker pull ghcr.io/jasontm17/eventory-web:0.1.1
+docker pull nguyenson1710/eventory-api:0.1.1
+docker pull nguyenson1710/eventory-web:0.1.1
+```
+
+See the [v0.1.1 release](https://github.com/JasonTM17/Eventory/releases/tag/v0.1.1)
+for full-SHA references and immutable digests.
+
+### Previous release
+
 Release `0.1.0` was built by the green main workflow for source commit
 `d66e7b643bf603fdec2e2fb0486e5444f515df87` and published to Docker Hub. Both
 semantic and full-SHA tags resolve to the same immutable manifest:

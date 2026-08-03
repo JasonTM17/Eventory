@@ -17,6 +17,8 @@
    WebSocket handshakes, QR keyrings, and a verified local portfolio preview.
 9. Exact private-workspace package payload checks, real product GIF/screenshots,
    and exported runtime/booking diagrams.
+10. Paired Docker Hub/GHCR release packages with semantic/full-SHA tags,
+    provenance, SBOM attestations, changelog, and GitHub Release records.
 
 The current local verification baseline is 17 API suites with 47 tests and 0
 failures against an owned Compose dependency project, plus the web storage

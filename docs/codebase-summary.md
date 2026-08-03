@@ -21,7 +21,8 @@
 - `apps/api/Dockerfile` and `apps/web/Dockerfile`: multi-stage non-root images.
 - `.github/workflows/pull-request.yml`: dependency-backed tests and image
   builds; `.github/workflows/main.yml`: repeat validation, focused web
-  regressions, and versioned image artifacts.
+  regressions, and versioned image artifacts; `.github/workflows/release.yml`:
+  paired Docker Hub/GHCR publication with OCI provenance and SBOM attestations.
 - `scripts/run-integration-tests.mjs`: owned dependencies-only Compose harness
   with dynamic ports, database/Redis sentinels, migration deployment, API
   tests, and scoped cleanup.
