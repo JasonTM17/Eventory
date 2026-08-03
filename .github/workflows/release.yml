@@ -98,6 +98,7 @@ jobs:
             org.opencontainers.image.title=${{ matrix.title }}
             org.opencontainers.image.description=${{ matrix.description }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
       - name: Build and publish ${{ matrix.service }}
         id: build
         uses: docker/build-push-action@v7

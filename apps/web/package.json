@@ -1,6 +1,7 @@
 {
   "name": "@eventory/web",
   "version": "0.1.1",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

@@ -35,7 +35,8 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 WORKDIR /app
 
-LABEL org.opencontainers.image.source="https://github.com/JasonTM17/Eventory"
+LABEL org.opencontainers.image.source="https://github.com/JasonTM17/Eventory" \
+  org.opencontainers.image.licenses="MIT"
 
 RUN groupadd --system --gid 1001 eventory \
   && useradd --system --uid 1001 --gid eventory eventory

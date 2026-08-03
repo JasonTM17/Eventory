@@ -1,6 +1,7 @@
 {
   "name": "@eventory/eslint-config",
   "version": "0.1.1",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "index.js",

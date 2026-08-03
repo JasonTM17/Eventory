@@ -141,4 +141,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) and [SECURITY.md](./SECURITY.md) for th
 
 ## License
 
-This portfolio project is currently unlicensed. Add a license before distributing it outside the project owner’s intended audience.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE).

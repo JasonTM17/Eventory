@@ -2,6 +2,12 @@
 
 All notable release changes are documented here. Eventory follows Semantic Versioning while the project remains in initial `0.x` development.
 
+## [Unreleased]
+
+### Added
+
+- MIT License coverage for the repository, workspace manifests, and future OCI images.
+
 ## [0.1.1] - 2026-08-03
 
 ### Added

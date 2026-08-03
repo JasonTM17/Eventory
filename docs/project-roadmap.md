@@ -24,8 +24,8 @@ The current local verification baseline is 17 API suites with 47 tests and 0
 failures against an owned Compose dependency project, plus the web storage
 regression, format, lint, typecheck, package payload, web build, audit, Prisma
 validation, and Compose config checks. A new remote workflow run for local-only
-commits, a public deployment URL, and a license remain release decisions rather
-than undocumented assumptions.
+commits and a public deployment URL remain release decisions rather than
+undocumented assumptions.
 
 ## Next increments
 

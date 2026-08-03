@@ -1,6 +1,7 @@
 {
   "name": "@eventory/typescript-config",
   "version": "0.1.1",
+  "license": "MIT",
   "private": true,
   "files": [
     "base.json",
