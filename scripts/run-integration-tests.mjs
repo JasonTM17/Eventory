@@ -6,7 +6,9 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 const composeFile = path.join(repositoryRoot, 'compose.test.yaml');
 const projectName = `eventory-integration-${process.pid}-${Date.now()}`;
-const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const isWindows = process.platform === 'win32';
+const pnpmCommand = isWindows ? process.env.ComSpec || 'cmd.exe' : 'pnpm';
+const pnpmPrefix = isWindows ? ['/d', '/s', '/c', 'pnpm.cmd'] : [];
 
 function composeArgs(...args) {
   return ['compose', '--project-name', projectName, '--file', composeFile, ...args];
@@ -127,13 +129,13 @@ try {
 
   await runChecked(
     pnpmCommand,
-    ['--filter', '@eventory/api', 'db:migrate'],
+    [...pnpmPrefix, '--filter', '@eventory/api', 'db:migrate'],
     testEnvironment,
     'Applying integration migrations',
   );
   await runChecked(
     pnpmCommand,
-    ['--filter', '@eventory/api', 'test'],
+    [...pnpmPrefix, '--filter', '@eventory/api', 'test'],
     testEnvironment,
     'Running API integration tests',
   );
