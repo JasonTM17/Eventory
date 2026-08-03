@@ -1,6 +1,6 @@
 import { Card, StatusBadge } from '@eventory/ui';
 import type { EventAnalyticsSummary } from '@eventory/contracts';
-import { formatMoney } from '../lib/format';
+import { formatDate, formatMoney } from '../lib/format';
 
 export function AnalyticsDashboard({
   metrics,
@@ -57,9 +57,8 @@ export function AnalyticsDashboard({
           </div>
         </div>
         <p className="empty-state">
-          {new Date(metrics.from).toLocaleDateString()} →{' '}
-          {new Date(metrics.to).toLocaleDateString()}. Values are scoped to this event and bounded
-          to a one-year window.
+          {formatDate(metrics.from, metrics.timezone)} → {formatDate(metrics.to, metrics.timezone)}.
+          Values are scoped to this event and bounded to a one-year window.
         </p>
       </Card>
     </div>

@@ -108,6 +108,7 @@ describe('analytics and administration', { concurrency: false }, () => {
       .set('Cookie', ownerCookie)
       .expect(200);
     assert.equal(metrics.body.eventId, eventId);
+    assert.equal(metrics.body.timezone, 'UTC');
     assert.equal(metrics.body.bookings.total, 0);
     assert.equal(metrics.body.payments.grossMinor, 0);
     assert.deepEqual(metrics.body.payments.currencies, []);

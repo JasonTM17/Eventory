@@ -15,7 +15,7 @@ export class AnalyticsService {
   async eventMetrics(eventId: string, userId: string, input: { from?: string; to?: string }) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true, organizationId: true },
+      select: { id: true, organizationId: true, timezone: true },
     });
     if (!event)
       throw new NotFoundException({ code: 'EVENT_NOT_FOUND', message: 'Event not found' });
@@ -81,6 +81,7 @@ export class AnalyticsService {
     const payments = this.statusCounts(paymentStatuses);
     return {
       eventId,
+      timezone: event.timezone,
       from: window.from.toISOString(),
       to: window.to.toISOString(),
       sessions,

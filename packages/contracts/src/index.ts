@@ -159,6 +159,7 @@ export interface CheckInResponse {
 
 export interface EventAnalyticsSummary {
   eventId: string;
+  timezone: string;
   from: string;
   to: string;
   sessions: number;
