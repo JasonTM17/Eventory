@@ -2,7 +2,11 @@
 
 The executable plan is maintained by the CK plan CLI at [`plans/20260801-eventory-platform/plan.md`](../plans/20260801-eventory-platform/plan.md). It is intentionally separate from this short index so phase status remains machine-readable.
 
-The plan is currently in progress on `feature/eventory-platform`; phase 1 has completed its workspace, tooling, architecture, and environment slices.
+The original 13-phase plan is completed. Its delivery branch was merged into
+`main`; the current release-hardening follow-up is tracked in
+[`plans/20260801-release-hardening/plan.md`](../plans/20260801-release-hardening/plan.md).
+Local verification status and intentionally deferred production decisions are
+summarized in [`project-roadmap.md`](./project-roadmap.md).
 
 ## Goal
 

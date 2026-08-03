@@ -21,7 +21,12 @@
 - `.github/workflows/pull-request.yml`: dependency-backed tests and image
   builds; `.github/workflows/main.yml`: repeat validation and versioned image
   artifacts.
-- `plans/20260801-eventory-platform`: phase files and acceptance evidence.
+- `scripts/run-integration-tests.mjs`: owned dependencies-only Compose harness
+  with dynamic ports, database/Redis sentinels, migration deployment, API
+  tests, and scoped cleanup.
+- `plans/20260801-eventory-platform`: original delivery phases;
+  `plans/20260801-release-hardening`: payment, worker, WebSocket, QR, CI, and
+  portfolio hardening evidence.
 
 ## Important commands
 
@@ -30,9 +35,9 @@ pnpm install --frozen-lockfile
 pnpm format:check
 pnpm lint
 pnpm typecheck
-pnpm --filter @eventory/api db:migrate
-pnpm --filter @eventory/api db:seed
-pnpm --filter @eventory/api test
+pnpm db:migrate
+pnpm db:seed
+pnpm test:integration
 pnpm --filter @eventory/web build
 docker compose up --build
 ```

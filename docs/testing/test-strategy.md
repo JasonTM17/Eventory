@@ -53,6 +53,9 @@ node --require ts-node/register --test test/check-in.e2e.test.ts
   then organizations and venues. Do not use `down --volumes` as a test helper.
 - Each concurrent scenario asserts both the winning result and all losing
   results; a happy-path response alone is insufficient.
+- `apps/api/test/seating-websocket.e2e.test.ts` exercises a real native
+  WebSocket handshake and proves trusted origins connect while hostile origins
+  are rejected before application traffic begins.
 - Generated Prisma/config output is rebuilt when source environment parsing
   changes so ts-node tests exercise current contracts.
 - The dependencies-only Compose target has no application or outbox worker;

@@ -1,6 +1,6 @@
 # Eventory roadmap
 
-## Delivered on `feature/eventory-platform`
+## Delivered on `main`
 
 1. Repository/tooling and local PostgreSQL/Redis/Mailpit foundation.
 2. NestJS API, Prisma schema, identity, authorization, organizations, venues,
@@ -12,6 +12,15 @@
    body/security headers, audits, metrics, threat model, runbooks, monitoring
    profile, dependency audit fixes.
 7. Docker images, Compose app services, CI workflows, and release docs.
+8. Release hardening for durable checkout claims, monotonic payment recovery,
+   reconciliation workers, owned integration tests, WebSocket handshakes, QR
+   keyrings, and a verified local portfolio preview.
+
+The current local verification baseline is `pnpm test:integration` with 17
+suites, 46 tests, and 0 failures, plus format, lint, typecheck, web build,
+audit, Prisma validation, and Compose config checks. A new remote workflow run
+for local-only commits, a public deployment URL, and a license remain release
+decisions rather than undocumented assumptions.
 
 ## Next increments
 
