@@ -112,6 +112,19 @@ ESLint configuration consumes the packaged shared preset. This validates the
 npm boundary without publishing the private workspaces; application containers
 are released separately.
 
+## Container images
+
+The verified `0.1.0` application images are public on Docker Hub:
+
+- [`nguyenson1710/eventory-api`](https://hub.docker.com/r/nguyenson1710/eventory-api) — `0.1.0` or `sha-d66e7b643bf603fdec2e2fb0486e5444f515df87`
+- [`nguyenson1710/eventory-web`](https://hub.docker.com/r/nguyenson1710/eventory-web) — `0.1.0` or `sha-d66e7b643bf603fdec2e2fb0486e5444f515df87`
+
+Use the full-SHA tags or recorded digests in the
+[deployment guide](./docs/deployment-guide.md) for reproducible pulls. Registry
+publication is not a public deployment: the API still requires reviewed
+runtime secrets and services, and the web image was built with the local-stack
+API URL.
+
 ## Development rules
 
 - Keep changes small and runnable; use Conventional Commits.

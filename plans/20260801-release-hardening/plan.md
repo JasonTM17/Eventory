@@ -52,8 +52,8 @@ deployment or license.
 | 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Completed |
 | 3 | [Operational resilience](./phase-03-operational-resilience.md) | In Progress |
 | 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Completed |
-| 12 | [Package delivery verification](./phase-12-package-delivery-verification.md) | In Progress |
-| 13 | [Docker Hub image publication](./phase-13-docker-hub-publication.md) | Pending |
+| 12 | [Package delivery verification](./phase-12-package-delivery-verification.md) | Completed |
+| 13 | [Docker Hub image publication](./phase-13-docker-hub-publication.md) | Completed |
 
 ## Dependencies
 
@@ -81,7 +81,7 @@ deployment or license.
   or compensation disposition, audit record, and operator-visible signal.
 - [x] Schema changes are forward-only, duplicate-safe, and rehearsed before
   enforcing a new checkout invariant.
-- [ ] A clean GitHub runner completes typecheck, migration, tests, web build,
+- [x] A clean GitHub runner completes typecheck, migration, tests, web build,
   audit, Compose validation, and image builds.
 - [x] Integration tests use an explicit Compose-backed database/Redis target and
   cannot mutate an unrelated local service at default host ports.
@@ -95,14 +95,15 @@ deployment or license.
   diagrams without secrets, PII, local file paths, or production claims.
 - [x] Shared workspace-package dry runs contain only intentional publishable
   files and run in local and GitHub Actions validation.
-- [ ] The verified `main` history is pushed to `origin/main` and its new GitHub
+- [x] The verified `main` history is pushed to `origin/main` and its new GitHub
   Actions validation result is recorded.
-- [ ] Verified API and web images are published to Docker Hub with semantic and
+- [x] Verified API and web images are published to Docker Hub with semantic and
   full-SHA tags and recorded immutable digests.
 
-The local release gate is green for the current worktree. The unchecked CI
-criterion is intentionally limited to a new remote run for these unpushed
-commits; the latest observed `main` run predates this work.
+Local gates and GitHub Actions run 30810707641 are green for source commit
+`d66e7b643bf603fdec2e2fb0486e5444f515df87`. Docker Hub semantic/full-SHA tag
+pairs resolve to the recorded immutable API and web digests. Remaining product
+questions below limit production-deployment claims, not this delivery.
 
 ## Commit Boundaries
 
@@ -178,8 +179,8 @@ commits; the latest observed `main` run predates this work.
 - Portfolio: three screenshots and one short GIF were captured from the seeded
   local product; two architecture/lifecycle diagrams were exported as SVG and
   PNG. No public URL, license, or GitHub metadata was invented.
-- Remote GitHub CI for the unpushed commits is not verified; keep that release
-  criterion open until the owner authorizes a push or runs it externally.
+- Remote GitHub CI run 30810707641 passed all gates for source commit
+  `d66e7b643bf603fdec2e2fb0486e5444f515df87`.
 
 ## Follow-up scope — 2026-08-03
 

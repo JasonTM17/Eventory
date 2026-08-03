@@ -1,7 +1,7 @@
 ---
 phase: 12
 title: 'Package delivery verification'
-status: in-progress
+status: completed
 priority: P1
 effort: '2-4h'
 dependencies: [4]
@@ -72,8 +72,15 @@ gate on pull requests and `main`, so local and remote expectations match.
 - [x] Both GitHub workflows run the package gate after required build output
       exists.
 - [x] Local quality, runtime/media, docs, and diagram gates pass.
-- [ ] `origin/main` equals the verified local `main` history and a new main
+- [x] `origin/main` equals the verified local `main` history and a new main
       workflow has a recorded green result.
+
+## Delivery evidence
+
+- Source commit: `d66e7b643bf603fdec2e2fb0486e5444f515df87`.
+- GitHub Actions: [main validation run 30810707641](https://github.com/JasonTM17/Eventory/actions/runs/30810707641), `success`.
+- The run passed package payload, web test, integration, build, audit, Compose,
+  and API/web image-build gates.
 - [x] No npm publish, license, or homepage update occurs without a separate
       owner decision; Docker Hub publication is explicitly authorized in the
       follow-up request and tracked by Phase 13.

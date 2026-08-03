@@ -45,6 +45,27 @@ Use `docker compose down --volumes` only when intentionally resetting the local 
 
 Pull requests run the full quality matrix and build both images. The main
 workflow tags images with the commit SHA and uploads compressed image archives;
-it does not deploy or require production credentials. A deployment platform
-should inject `DATABASE_URL`, `REDIS_URL`, non-default session/QR/payment
-secrets, a production `METRICS_TOKEN`, and an explicit `CORS_ORIGINS` value.
+it does not deploy or require production credentials.
+
+Release `0.1.0` was built by the green main workflow for source commit
+`d66e7b643bf603fdec2e2fb0486e5444f515df87` and published to Docker Hub. Both
+semantic and full-SHA tags resolve to the same immutable manifest:
+
+| Service | Pull reference                     | Manifest digest                                                           |
+| ------- | ---------------------------------- | ------------------------------------------------------------------------- |
+| API     | `nguyenson1710/eventory-api:0.1.0` | `sha256:a210cdc58aa3a4891f2e3d7bdb34863b2f1eb8094f01437e3e1b05f9ae376ea7` |
+| Web     | `nguyenson1710/eventory-web:0.1.0` | `sha256:fd0b7ee19c5022920f2391ef300771b495166ee48db8a788b212bbadfb5ead0c` |
+
+For reproducible deployment, pull by digest:
+
+```bash
+docker pull nguyenson1710/eventory-api@sha256:a210cdc58aa3a4891f2e3d7bdb34863b2f1eb8094f01437e3e1b05f9ae376ea7
+docker pull nguyenson1710/eventory-web@sha256:fd0b7ee19c5022920f2391ef300771b495166ee48db8a788b212bbadfb5ead0c
+```
+
+These images run as the non-root `eventory` user. A deployment platform should
+inject `DATABASE_URL`, `REDIS_URL`, non-default session/QR/payment secrets, a
+production `METRICS_TOKEN`, and an explicit `CORS_ORIGINS` value. The published
+web image uses the Dockerfile default `http://localhost:4000/api/v1`; rebuild it
+with `NEXT_PUBLIC_API_BASE_URL` set to the public API origin for a hosted
+environment.
