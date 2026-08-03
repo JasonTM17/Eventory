@@ -102,7 +102,7 @@ async function main(): Promise<void> {
       timezone: 'Asia/Ho_Chi_Minh',
       startAt,
       endAt,
-      status: EventStatus.PUBLISHED,
+      status: EventStatus.SALES_OPEN,
       publishedAt: new Date(),
     },
     create: {
@@ -114,16 +114,34 @@ async function main(): Promise<void> {
       timezone: 'Asia/Ho_Chi_Minh',
       startAt,
       endAt,
-      status: EventStatus.PUBLISHED,
+      status: EventStatus.SALES_OPEN,
       publishedAt: new Date(),
     },
   });
 
-  const session = await prisma.eventSession.upsert({
-    where: { id: `${event.id}` },
-    update: { name: 'Main session', startAt, endAt, salesStartAt, salesEndAt },
-    create: { eventId: event.id, name: 'Main session', startAt, endAt, salesStartAt, salesEndAt },
+  const existingSessions = await prisma.eventSession.findMany({
+    where: { eventId: event.id, name: 'Main session' },
+    select: { id: true, _count: { select: { bookings: true, tickets: true } } },
   });
+  existingSessions.sort(
+    (left, right) =>
+      right._count.bookings + right._count.tickets - left._count.bookings - left._count.tickets,
+  );
+  const session = existingSessions[0]
+    ? await prisma.eventSession.update({
+        where: { id: existingSessions[0].id },
+        data: { startAt, endAt, salesStartAt, salesEndAt },
+      })
+    : await prisma.eventSession.create({
+        data: { eventId: event.id, name: 'Main session', startAt, endAt, salesStartAt, salesEndAt },
+      });
+  const removableDuplicateIds = existingSessions
+    .slice(1)
+    .filter(({ _count }) => _count.bookings === 0 && _count.tickets === 0)
+    .map(({ id }) => id);
+  if (removableDuplicateIds.length) {
+    await prisma.eventSession.deleteMany({ where: { id: { in: removableDuplicateIds } } });
+  }
   const ticketType = await prisma.ticketType.upsert({
     where: { eventId_name: { eventId: event.id, name: 'General Admission' } },
     update: {

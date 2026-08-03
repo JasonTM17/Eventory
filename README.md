@@ -52,6 +52,9 @@ deterministic demo after the stack is healthy:
 pnpm db:seed
 ```
 
+The seed creates the published demo event with sales already open so the
+discovery, seat-hold, checkout, and ticket flows can be exercised locally.
+
 For host development, use `docker compose up -d postgres redis mailpit`, then
 `pnpm db:migrate` and `pnpm dev`. Copy `.env.example` to `.env` when changing
 ports or secrets. Never use the local defaults in production.
