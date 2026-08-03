@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const workspaceRoot = resolve(import.meta.dirname, '..');
+const requiredPackageFiles = ['LICENSE'];
 const packageSpecs = [
   {
     directory: 'packages/config',
@@ -54,6 +55,7 @@ for (const spec of packageSpecs) {
   const packageDirectory = resolve(workspaceRoot, spec.directory);
   const manifest = JSON.parse(readFileSync(resolve(packageDirectory, 'package.json'), 'utf8'));
   if (manifest.private !== true) throw new Error(`${manifest.name} must remain private`);
+  if (manifest.license !== 'MIT') throw new Error(`${manifest.name} must declare the MIT license`);
 
   const command = process.platform === 'win32' ? (process.env.ComSpec ?? 'cmd.exe') : 'pnpm';
   const commandArguments =
@@ -71,7 +73,7 @@ for (const spec of packageSpecs) {
 
   const payload = JSON.parse(result.stdout);
   const actualFiles = payload.files.map((file) => file.path);
-  assertEqualFiles(manifest.name, actualFiles, spec.files);
+  assertEqualFiles(manifest.name, actualFiles, [...spec.files, ...requiredPackageFiles]);
 
   for (const entrypoint of [manifest.main, manifest.types]) {
     if (entrypoint && !actualFiles.includes(entrypoint)) {
