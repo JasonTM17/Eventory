@@ -11,7 +11,7 @@ The web client needs authenticated API requests without exposing long-lived refr
 
 Eventory issues a short-lived signed access token and a random refresh token in separate `HttpOnly` cookies. The access token is verified on each request and the current user status is read from PostgreSQL. Refresh tokens are stored only as SHA-256 digests, rotated transactionally, and grouped by a family identifier. Reuse or replay revokes every token in the family.
 
-Cookies use `SameSite=Lax`, `HttpOnly`, `Secure` in production, and narrow paths (`/api` for access and `/api/v1/auth` for refresh). CORS remains an explicit allow-list. Session-issuing routes require a trusted `Origin`/`Referer`; originless SSR/service callers must send `X-Eventory-Client: server` and omit Fetch Metadata headers such as `Sec-Fetch-Site`.
+Cookies use `SameSite=Lax`, `HttpOnly`, `Secure` in production, and `Path=/` so the Next.js server-rendered routes can forward the session to the API as well as browser client requests. Logout clears the previous narrow-path variants (`/api` and `/api/v1/auth`) for migration. CORS remains an explicit allow-list. Session-issuing routes require a trusted `Origin`/`Referer`; originless SSR/service callers must send `X-Eventory-Client: server` and omit Fetch Metadata headers such as `Sec-Fetch-Site`.
 
 ## Consequences
 

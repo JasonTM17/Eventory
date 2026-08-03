@@ -13,6 +13,13 @@ function cookiePair(headers: string | string[] | undefined, name: string): strin
   return value.split(';', 1)[0] as string;
 }
 
+function cookieHeader(headers: string | string[] | undefined, name: string): string {
+  const values = Array.isArray(headers) ? headers : headers ? [headers] : [];
+  const value = values.find((header) => header.startsWith(`${name}=`));
+  assert.ok(value, `Expected ${name} cookie header`);
+  return value;
+}
+
 describe('identity endpoints', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -46,6 +53,14 @@ describe('identity endpoints', () => {
     assert.equal(register.body.user.role, 'ATTENDEE');
     assert.ok(cookiePair(register.headers['set-cookie'], 'eventory_access'));
     assert.ok(cookiePair(register.headers['set-cookie'], 'eventory_refresh'));
+    assert.match(
+      cookieHeader(register.headers['set-cookie'], 'eventory_access'),
+      /; Path=\/(?:;|$)/i,
+    );
+    assert.match(
+      cookieHeader(register.headers['set-cookie'], 'eventory_refresh'),
+      /; Path=\/(?:;|$)/i,
+    );
 
     const accessCookie = cookiePair(register.headers['set-cookie'], 'eventory_access');
     const me = await request(app.getHttpServer())

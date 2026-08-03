@@ -12,7 +12,8 @@ export default async function OrganizerPage(): Promise<React.JSX.Element> {
   let user: AuthUser | null = null;
   let organizations: OrganizationSummary[] = [];
   try {
-    user = await apiRequest<AuthUser>('/auth/me', {}, cookieHeader);
+    const response = await apiRequest<{ user: AuthUser }>('/auth/me', {}, cookieHeader);
+    user = response.user;
     organizations = await apiRequest<OrganizationSummary[]>('/organizations', {}, cookieHeader);
   } catch (error) {
     if (!isApiError(error, 401)) throw error;

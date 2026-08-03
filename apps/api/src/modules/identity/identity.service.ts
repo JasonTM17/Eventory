@@ -125,8 +125,9 @@ export class IdentityService {
     }
     const actorUserId = (request as Request & { user?: { id?: string } }).user?.id;
     if (actorUserId) await this.recordAudit('USER_LOGGED_OUT', actorUserId, request);
-    response.clearCookie(ACCESS_TOKEN_COOKIE, this.cookieOptions('/api'));
-    response.clearCookie(REFRESH_TOKEN_COOKIE, this.cookieOptions('/api/v1/auth'));
+    response.clearCookie(ACCESS_TOKEN_COOKIE, this.cookieOptions('/'));
+    response.clearCookie(REFRESH_TOKEN_COOKIE, this.cookieOptions('/'));
+    this.clearLegacySessionCookies(response);
     return { success: true };
   }
 
@@ -193,13 +194,19 @@ export class IdentityService {
 
   private setSessionCookies(response: Response, accessToken: string, refreshToken: string): void {
     response.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
-      ...this.cookieOptions('/api'),
+      ...this.cookieOptions('/'),
       maxAge: this.config.getOrThrow<number>('ACCESS_TOKEN_TTL_SECONDS') * 1_000,
     });
     response.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
-      ...this.cookieOptions('/api/v1/auth'),
+      ...this.cookieOptions('/'),
       maxAge: this.config.getOrThrow<number>('REFRESH_TOKEN_TTL_SECONDS') * 1_000,
     });
+    this.clearLegacySessionCookies(response);
+  }
+
+  private clearLegacySessionCookies(response: Response): void {
+    response.clearCookie(ACCESS_TOKEN_COOKIE, this.cookieOptions('/api'));
+    response.clearCookie(REFRESH_TOKEN_COOKIE, this.cookieOptions('/api/v1/auth'));
   }
 
   private cookieOptions(path: string): {
