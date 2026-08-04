@@ -25,7 +25,7 @@ Provide reproducible local PostgreSQL, Redis, and Mailpit services with health c
 
 ## Architecture
 
-Compose services are dependency infrastructure only. PostgreSQL exposes the API database, Redis exposes holds/queues, and Mailpit captures email. Health checks are the contract consumed by later API and CI services.
+Compose services are dependency infrastructure only. PostgreSQL exposes the API database, Redis exposes expiring seat holds, and Mailpit captures email. Health checks are the contract consumed by later API and CI services.
 
 ## Implementation Steps
 

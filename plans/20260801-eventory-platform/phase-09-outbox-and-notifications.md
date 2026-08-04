@@ -9,7 +9,10 @@ effort: 1 session
 
 ## Overview
 
-Add transactional outbox processing and asynchronous notification delivery for booking/payment/ticket/event events using BullMQ-style jobs, Mailpit locally, bounded retry/backoff, and idempotent consumers.
+Add transactional outbox processing and asynchronous notification delivery for
+booking/payment/ticket/event events using PostgreSQL polling workers inside the
+API process, Mailpit locally, bounded retry/backoff, and deduplicated delivery
+records.
 
 ## Requirements
 

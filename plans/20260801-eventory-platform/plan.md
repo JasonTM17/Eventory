@@ -34,7 +34,9 @@ Eventory will be implemented from the supplied specification as one cohesive por
 - **Repository:** pnpm workspaces + Turborepo, with `apps/web`, `apps/api`, and focused shared packages.
 - **Backend:** NestJS modular monolith. Modules own their domain rules and communicate through application contracts; no unnecessary network microservices.
 - **Persistence:** PostgreSQL is the source of truth. Prisma migrations and explicit transactions protect booking, payment, ticket, and check-in invariants.
-- **Ephemeral coordination:** Redis stores short-lived seat holds and BullMQ jobs. Redis is never treated as permanent seat ownership.
+- **Ephemeral coordination:** Redis stores short-lived seat holds and expiry
+  notifications. PostgreSQL-backed in-process workers handle outbox and booking
+  reconciliation; Redis is never treated as permanent seat ownership.
 - **Web:** Next.js App Router with server components by default, typed API contracts, accessible responsive UI, and WebSocket updates only for interactive seating.
 - **Authentication:** Rotating refresh sessions in secure HttpOnly cookies, Argon2id password hashing, CSRF protection for cookie-mutating requests, and backend-first authorization.
 - **Integration seams:** `PaymentProvider`, `EmailProvider`, QR signing, and job dispatch are explicit ports with local implementations (`MockPaymentProvider`, Mailpit adapter).

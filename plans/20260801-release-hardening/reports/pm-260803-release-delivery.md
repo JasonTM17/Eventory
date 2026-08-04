@@ -2,9 +2,9 @@
 
 ## Status
 
-DONE. Phase 4 media, Phase 12 package/GitHub delivery, and Phase 13 Docker Hub
-publication completed. The broader hardening plan remains open only for
-explicit product/operations decisions listed in `plan.md`.
+DONE. All release-hardening phases are complete. Remaining real-provider and
+hosted-operations decisions limit production-deployment claims, not repository
+delivery.
 
 ## Shipped
 
@@ -15,8 +15,9 @@ explicit product/operations decisions listed in `plan.md`.
   browser Engine.IO polling headers.
 - Exact payload verifier for all five private workspace packages, wired into PR
   and main workflows.
-- Four focused commits through `d66e7b6`, pushed to `origin/main`.
-- Docker Hub API/web `0.1.0` and full source-SHA tags.
+- Focused implementation, release, media, and documentation commits pushed to
+  `origin/main`.
+- Docker Hub and GHCR API/web `0.1.2`, `latest`, and full source-SHA tags.
 
 ## Verification
 
@@ -24,16 +25,19 @@ explicit product/operations decisions listed in `plan.md`.
   payloads, Prisma, web build, production audit, Compose, docs, diagrams pass.
 - Review: one unhandled expiration-broadcast rejection found and fixed; no
   remaining blocker.
-- Remote: [GitHub Actions 30810707641](https://github.com/JasonTM17/Eventory/actions/runs/30810707641) passed every gate.
-- Registry: semantic and full-SHA tags match; API digest `sha256:a210cdc58aa3a4891f2e3d7bdb34863b2f1eb8094f01437e3e1b05f9ae376ea7`, web digest `sha256:fd0b7ee19c5022920f2391ef300771b495166ee48db8a788b212bbadfb5ead0c`; both non-root smoke checks passed.
+- Remote: [GitHub Actions 30870326422](https://github.com/JasonTM17/Eventory/actions/runs/30870326422) passed every main gate; [release run 30869248045](https://github.com/JasonTM17/Eventory/actions/runs/30869248045) published `v0.1.2`.
+- Registry: Docker Hub and GHCR manifests match; API digest `sha256:305e2e4ff3edb739da87bff67e2c74bbc465bf45cfdf1063407883496f19db6f`, web digest `sha256:737e054e5e64f2ed9716939764a9da7ccbd089e57b2c5d6a2427f65a827e3629`.
 
 ## Limitations
 
 - Registry images are published, not deployed to a public environment.
 - Web image uses the local-stack API URL and must be rebuilt for a hosted API.
-- No npm workspace publication, license, or GitHub homepage was invented.
+- Workspace packages remain private and unpublished to npm.
+- The repository uses MIT. No GitHub homepage is set without a verified public
+  deployment.
 
 ## Unresolved questions
 
-- Public deployment URL and license.
-- Real payment refund/chargeback contract and QR key-rotation policy.
+- Public deployment target and API origin.
+- Real payment/email providers and refund/chargeback contract.
+- Managed secrets, backups, external alerting, and operational ownership.

@@ -3,7 +3,7 @@ title: Eventory release hardening
 description: >-
   Close verified security, payment-integrity, CI, and public-repository
   readiness gaps before presenting Eventory as release-ready.
-status: in-progress
+status: completed
 priority: P1
 effort: 4-6 days
 branch: main
@@ -26,14 +26,11 @@ source: skill
 
 ## Overview
 
-Eventory has a credible modular-monolith foundation, but a CK adversarial review
-verified release blockers: login CSRF, duplicate checkout attempts for one seat
-hold, provider side effects before a durable checkout claim, and non-monotonic
-payment webhook transitions. A fresh GitHub Actions run on `main` is also red
-because a clean checkout typecheck cannot resolve the generated
-`@eventory/config` declarations. This plan fixes those facts first, then makes
-integration validation deterministic and only then polishes the public
-repository.
+Eventory entered this plan with verified release blockers in session security,
+booking/payment integrity, clean-checkout CI, and operational resilience. Those
+delivery criteria are now implemented and verified. Remaining real-provider and
+hosted-operations decisions limit production-deployment claims, not completion
+of this repository hardening plan.
 
 Production release remains blocked until phases 1–3 meet their acceptance
 criteria and the unresolved financial-reconciliation and QR-rotation decisions
@@ -50,7 +47,7 @@ deployment or license.
 |-------|------|--------|
 | 1 | [Session security](./phase-01-session-security.md) | Completed |
 | 2 | [Booking and payment integrity](./phase-02-booking-and-payment-integrity.md) | Completed |
-| 3 | [Operational resilience](./phase-03-operational-resilience.md) | In Progress |
+| 3 | [Operational resilience](./phase-03-operational-resilience.md) | Completed |
 | 4 | [Portfolio polish](./phase-04-portfolio-polish.md) | Completed |
 | 12 | [Package delivery verification](./phase-12-package-delivery-verification.md) | Completed |
 | 13 | [Docker Hub image publication](./phase-13-docker-hub-publication.md) | Completed |
@@ -100,10 +97,11 @@ deployment or license.
 - [x] Verified API and web images are published to Docker Hub with semantic and
   full-SHA tags and recorded immutable digests.
 
-Local gates and GitHub Actions run 30810707641 are green for source commit
-`d66e7b643bf603fdec2e2fb0486e5444f515df87`. Docker Hub semantic/full-SHA tag
-pairs resolve to the recorded immutable API and web digests. Remaining product
-questions below limit production-deployment claims, not this delivery.
+Local gates and GitHub Actions run `30870326422` are green for source commit
+`635256c29f9be517a6444f36728c9ebd2647ef8c`. Release workflow run `30869248045`
+published `v0.1.2` from `c3abeb64013fa88dc80b3550591462b2e4bdbd25` to
+Docker Hub and GHCR with matching immutable digests. Remaining product questions
+below limit production-deployment claims, not this delivery.
 
 ## Commit Boundaries
 
@@ -123,15 +121,9 @@ questions below limit production-deployment claims, not this delivery.
 
 - Which public deployment URL should become the GitHub homepage after a verified
   environment exists?
-- Which license does the repository owner want to publish? Do not add one until
-  that choice is explicit.
 - For a captured payment that arrives after seat-hold expiry, should the product
   automatically void/refund when the provider supports it, or create an
   operator-reconciliation workflow? This is a financial product decision.
-- Is live seat availability intentionally public? The answer determines whether
-  a valid authenticated session is required at the WebSocket handshake.
-- Does the next real-release scope require compatible QR key rotation, or must
-  operations prohibit key/secret rotation while any ticket remains valid?
 - Are refunds and chargebacks part of the current payment contract, or explicitly
   unsupported until a real payment-provider integration plan is approved?
 
@@ -147,14 +139,14 @@ questions below limit production-deployment claims, not this delivery.
 | 1 | Provider call precedes durable checkout claim | Critical | Accept | Phase 2 |
 | 2 | Late captured payment lacks compensation path | Critical | Accept | Phase 2, Phase 3 |
 | 3 | Webhook and expiry writers lack one transition contract | High | Accept | Phase 2, Phase 3 |
-| 4 | Unique-hold migration needs staged forward rollout | High | Accept | In Progress |
+| 4 | Unique-hold migration needs staged forward rollout | High | Accept | Completed |
 | 5 | All session-cookie routes need origin coverage | Medium | Accept | Phase 1 |
 | 6 | Checkout key must be hold-scoped | High | Accept | Phase 2 |
 | 7 | Test target must be an owned dependencies-only environment | High | Accept | Phase 3 |
 | 8 | Outbox claim failures need guarded worker handling | High | Accept | Phase 3 |
 | 9 | WebSocket enforcement must occur at handshake | High | Accept | Phase 3 |
 | 10 | Refund/chargeback terminality needs a declared contract | High | Accept | Phase 2 |
-| 11 | QR rotation needs a product/operations decision | High | Pending decision | Phase 3 |
+| 11 | QR rotation needs a product/operations decision | High | Resolved with versioned keyring | Phase 3 |
 
 ### Whole-Plan Consistency Sweep
 
@@ -167,7 +159,7 @@ questions below limit production-deployment claims, not this delivery.
   above and block a production-ready claim, not plan execution of the other
   corrective work.
 
-## Verification snapshot — 2026-08-03
+## Verification snapshot — 2026-08-04
 
 - Phase 2: durable hold/provider claims, monotonic webhook transitions, late
   capture reconciliation, and idempotency regressions pass; clean and duplicate
@@ -178,9 +170,12 @@ questions below limit production-deployment claims, not this delivery.
   validation pass locally.
 - Portfolio: three screenshots and one short GIF were captured from the seeded
   local product; two architecture/lifecycle diagrams were exported as SVG and
-  PNG. No public URL, license, or GitHub metadata was invented.
-- Remote GitHub CI run 30810707641 passed all gates for source commit
-  `d66e7b643bf603fdec2e2fb0486e5444f515df87`.
+  PNG. No public URL or GitHub homepage was invented; the repository now uses
+  the explicitly selected MIT License.
+- Remote GitHub CI run `30870326422` passed all gates for source commit
+  `635256c29f9be517a6444f36728c9ebd2647ef8c`.
+- Release workflow run `30869248045` published `v0.1.2` from `c3abeb6` to both
+  registries with matching API/web digests, provenance, and SBOM attestations.
 
 ## Follow-up scope — 2026-08-03
 
@@ -190,6 +185,7 @@ questions below limit production-deployment claims, not this delivery.
 - Phase 12 owns shared-package payload allow-lists, a root `package:check`
   command, matching CI gates, full local validation, commit/push, and remote
   workflow evidence.
-- Out of scope: selecting a license, publishing npm packages, changing GitHub
-  homepage metadata, deploying a public environment, or replacing the mock
-  payment provider. Docker Hub image publication is now in explicit Phase 13.
+- Out of scope: publishing npm packages, setting a GitHub homepage without a
+  verified deployment, deploying a public environment, or replacing the mock
+  payment provider. The repository uses the MIT License; Docker Hub and GHCR
+  publication completed through Phase 13 and the `v0.1.2` release workflow.

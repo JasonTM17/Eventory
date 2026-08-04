@@ -25,7 +25,7 @@ Create the Next.js App Router app, shared UI/config packages, secure auth-aware 
 
 ## Architecture
 
-Contracts are shared as validation/types without leaking server internals. Server components fetch public/read data; client components are limited to forms, dialogs, and future seat interactions. Auth uses same-site HttpOnly cookies and server-side route checks for UX, while API guards remain authoritative.
+Contracts are shared as validation/types without leaking server internals. Server components fetch public/read data; client components own interactive forms, dialogs, checkout, seat selection, ticket presentation, and organizer controls. Auth uses same-site HttpOnly cookies and server-side route checks for UX, while API guards remain authoritative.
 
 ## Implementation Steps
 

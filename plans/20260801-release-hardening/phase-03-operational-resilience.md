@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: 'Operational resilience'
-status: in-progress
+status: completed
 priority: P1
 effort: '1-2d'
 dependencies: [1, 2]
@@ -107,7 +107,7 @@ enforcement; rate limiting belongs at the gateway/edge boundary.
 
 - [x] A fresh clone/clean CI runner passes typecheck without prebuilt workspace
       declarations.
-- [ ] GitHub Actions on `main` is green through tests, web build, audit, Compose
+- [x] GitHub Actions on `main` is green through tests, web build, audit, Compose
       validation, Docker builds, and artifact upload.
 - [x] API tests pass using the Compose services actually started for that run;
       intentionally wrong ports or a non-test database fail with a clear setup
@@ -147,14 +147,14 @@ enforcement; rate limiting belongs at the gateway/edge boundary.
 - Preserve masked secrets in CI logs and avoid putting connection strings in
   committed test helpers.
 
-## Verification snapshot — 2026-08-03
+## Verification snapshot — 2026-08-04
 
-Implemented and locally verified: clean typecheck dependency graph, owned
+Implemented and verified: clean typecheck dependency graph, owned
 dependencies-only integration runner, guarded outbox/booking workers, gateway
 handshake and pressure limits, compatible QR signing key rotation, and native
-WebSocket handshake behavior. The integration run completed with 17 suites,
-46 tests, and 0 failures; the runner applied 12 migrations, used dynamic
-ports/sentinels, and cleaned its Compose project.
+WebSocket handshake behavior. The current integration baseline is 17 suites,
+47 tests, and 0 failures against a dynamic, sentinel-checked Compose project.
 
-The GitHub Actions criterion remains open because these commits are local and
-unpushed; the latest observed remote `main` run predates this verification.
+GitHub Actions run `30870326422` passed tests, web build, audit, Compose
+validation, Docker builds, and artifact upload for source commit
+`635256c29f9be517a6444f36728c9ebd2647ef8c`.
