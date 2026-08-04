@@ -1,6 +1,8 @@
 # Media Containment Fix
 
-**Date**: 2026-08-03 00:00
+**Date**: 2026-08-03
+
+**Resolved**: 2026-08-04
 
 **Severity**: Medium
 
@@ -22,6 +24,7 @@ This was a geometry problem, not a mysterious rendering bug. We let fixed-size m
 - QR loading state was contained at `280/320`, so the placeholder no longer spills outside the card during load.
 - Manual browser geometry checks were used as evidence; no Playwright dependency was added just to prove a layout fix.
 - Validation passed: `10` tests plus lint, typecheck, and build all passed.
+- Current audited release evidence: `635256c`, main run `30870326422`, release run `30869248045`, and `v0.1.2` digests for the API/web images.
 
 ## What We Tried
 
@@ -37,9 +40,15 @@ The root cause was rigid layout assumptions in a responsive page. The rotated po
 
 Responsive media needs explicit containment, not optimism. If a panel rotates, loads asynchronously, or shares space with a dev overlay, its width and stacking behavior need to be treated as first-class constraints.
 
-## Next Steps
+## Resolution evidence
 
-Commit and release only when requested. Owner: repo maintainer. Timeline: no further action unless the user asks for packaging or shipping.
+- Web implementation: `d0933f3`
+- Cinema inventory seed: `972da03`
+- Plan and journal evidence: `a04867d`
+- `v0.1.2` release source: `c3abeb6`
+- Refreshed product media: `635256c`
+
+No further media-containment implementation remains. Re-check the containment
+rules when adding new media surfaces.
 
 Status: DONE
-Changed file: `docs/journals/2026-08-03-media-containment-fix.md`

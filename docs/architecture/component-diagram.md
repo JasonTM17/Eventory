@@ -1,4 +1,4 @@
-# Eventory component boundaries
+# Eventory business capability flow
 
 ```mermaid
 flowchart LR
@@ -19,6 +19,7 @@ flowchart LR
   events --> bookings
   bookings --> payments
   payments --> outbox
+  payments --> analytics
   bookings --> outbox
   outbox --> notify
   bookings --> tickets
@@ -27,4 +28,8 @@ flowchart LR
   payments --> analytics
 ```
 
-Each box maps to a NestJS module with domain/application/infrastructure/presentation folders where the boundary is useful. Small modules may keep fewer layers, but they cannot bypass authorization, transaction, or event contracts.
+This diagram shows business flow, not the NestJS import graph. Services are
+organized primarily as flat Nest modules and may share Prisma transactions
+across capabilities. Authorization, transaction, webhook-inbox,
+reconciliation, and outbox contracts remain explicit even when one service
+coordinates several tables.

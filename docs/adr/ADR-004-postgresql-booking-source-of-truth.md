@@ -9,7 +9,7 @@ Seat selection is a high-contention workflow. Redis is useful for short-lived ho
 
 ## Decision
 
-PostgreSQL owns durable seat allocation and booking state. Redis stores only expiring hold tokens with a bounded TTL. The API validates a hold, then commits the booking and the seat state in one database transaction. The transaction is protected by the unique `(event_session_id, seat_id)` allocation key and row-level locking/conditional updates. Payment callbacks use an idempotency key and update the same durable aggregate.
+PostgreSQL owns durable seat allocation and booking state. Redis stores only expiring hold tokens with a bounded TTL. The API validates a hold, then commits the booking and the seat state in one database transaction. The transaction is protected by the unique `(event_session_id, seat_id)` allocation key and row-level locking/conditional updates. Payment creation uses a durable provider idempotency key. Incoming callbacks deduplicate by provider event identity and update the same durable aggregate.
 
 ## Consequences
 

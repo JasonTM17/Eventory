@@ -9,7 +9,7 @@ The checkout path must be testable without credentials or network calls. A clien
 
 ## Decision
 
-Eventory exposes a `PaymentProvider` boundary and ships a deterministic mock adapter for development and automated tests. Mock webhooks are HMAC-SHA256 signed with `MOCK_PAYMENT_WEBHOOK_SECRET`, and the API validates the provider reference, amount, currency, and event id before mutating a booking.
+Eventory exposes a `PaymentProvider` boundary and ships a deterministic mock adapter for development and automated tests. Mock webhooks are HMAC-SHA256 signed with `MOCK_PAYMENT_WEBHOOK_SECRET`, and the API validates the provider reference, amount, currency, and event id before mutating a booking. The provider event identity is `(provider, providerEventId)` and duplicate callbacks collapse to the same stored event.
 
 The local-only completion endpoint is rejected when `NODE_ENV=production`. Successful callbacks confirm a booking, atomically mark allocations sold, issue one ticket per booking item, and enqueue an outbox event in PostgreSQL. Failed or expired callbacks transition the payment and booking to terminal states without selling inventory.
 

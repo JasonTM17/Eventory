@@ -1,11 +1,13 @@
 # Eventory threat model
 
-Last reviewed: 2026-08-01
+Last reviewed: 2026-08-04
 
 Eventory treats the browser, payment provider, QR scanner, and all request
 payloads as untrusted. PostgreSQL is the durable source of truth; Redis holds
 only expiring coordination data. This document records the release threat
-model and the controls verified in the API.
+model and the controls verified in the API. The QR keyring exists in code, but
+operational key rotation is still a release procedure, not an automated
+service feature.
 
 ## Assets and trust boundaries
 
@@ -22,38 +24,42 @@ body limits, uses Helmet headers, checks the CORS allowlist, and rejects
 session issuance from an untrusted source. A supplied `Origin` or `Referer`
 must normalize to `CORS_ORIGINS`; browser-indicated requests without either are
 rejected. Originless session issuance is reserved for SSR/service callers that
-send `X-Eventory-Client: server` and do not present `Sec-Fetch-Site`; any
-request that carries Fetch Metadata without a trusted origin is rejected.
-Deployments should still keep the API private or use an authenticated gateway
-for service callers.
+send `X-Eventory-Client: server` and do not present `Sec-Fetch-Site`; that
+header is a routing signal, not authentication. Any originless client can send
+it, so service callers still require network isolation or an authenticated
+gateway. Requests that carry Fetch Metadata without a trusted origin are
+rejected.
 
 ## Adversarial scenarios and controls
 
-| Threat                                  | Likely path                                                                  | Controls                                                                                                                                         | Residual risk                                                                                                         |
-| --------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| Credential stuffing / denial of service | Repeated register, login, refresh, hold, checkout, webhook, or scan requests | Per-route rate limits, bounded request body, generic credential errors, Argon2id                                                                 | The in-process limiter is per instance; multi-instance deployments should add a Redis-backed limiter or edge throttle |
-| BOLA / tenant escape                    | Guess event, booking, ticket, organization, or admin IDs                     | Ownership queries, organization membership policy, admin role guard, cross-tenant tests                                                          | Operators with database credentials can bypass the API; use least-privilege database access                           |
-| Seat race / replay                      | Two buyers hold or confirm the same seat                                     | Redis Lua hold script, PostgreSQL allocation transaction, idempotency records, payment-event uniqueness                                          | Redis outage rejects holds; see the Redis runbook                                                                     |
-| QR forgery / replay                     | Edit a QR, reuse it at another session, or scan it twice concurrently        | HMAC-SHA256, key version, random nonce, opaque public code, session binding, conditional status update, unique check-in row                      | An authorized scanner can still scan a valid ticket; rotate signing keys with a future key version                    |
-| CSRF / login CSRF                       | A malicious page submits a cookie-backed mutation or issues a session        | Origin allowlist guard, route-scoped session-issuance policy, `SameSite=Lax` cookies, CORS credentials allowlist                                 | Originless session issuance is limited to SSR/service callers with the explicit non-simple header                     |
-| XSS / unsafe output                     | User-controlled event names or search values rendered in the web app         | React escaping, DTO length constraints, Helmet CSP-related defaults, no raw HTML rendering                                                       | CSP is not a substitute for output encoding; audit any future rich-text feature                                       |
-| Injection                               | Query, search, webhook, or body values reach persistence                     | Prisma parameterization, DTO validation, bounded pagination, no shell interpolation                                                              | Raw SQL is limited to reviewed aggregate/update statements                                                            |
-| Enumeration                             | Probe login, tickets, bookings, or metrics                                   | Generic authentication errors, opaque public codes, ownership filters, metrics token in production                                               | Public event discovery is intentionally searchable by product design                                                  |
-| Privilege escalation                    | Change a role/status or organization membership                              | Backend role and organization policy checks, self-moderation denial, audit records, suspended-session revocation                                 | A compromised admin account remains high impact; protect admin credentials and monitor audit logs                     |
-| Secret / PII leakage                    | Request or response logs, metrics, errors                                    | Pino redacts authorization/cookies/passwords/refresh tokens/QR/payment signatures and response `Set-Cookie`; safe error filter; metrics omit PII | Third-party infrastructure logs need equivalent redaction policies                                                    |
-| Dependency / supply chain               | Vulnerable package or leaked environment file                                | Lockfile, `npm audit`/`pnpm audit`, `.gitignore`, CI checks, no secrets in images                                                                | Audit findings must be triaged when advisories change                                                                 |
+| Threat                                  | Likely path                                                                  | Controls                                                                                                                                         | Residual risk                                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Credential stuffing / denial of service | Repeated register, login, refresh, hold, checkout, webhook, or scan requests | Per-route rate limits, bounded request body, generic credential errors, Argon2id                                                                 | The in-process limiter is per instance; multi-instance deployments should add a Redis-backed limiter or edge throttle  |
+| BOLA / tenant escape                    | Guess event, booking, ticket, organization, or admin IDs                     | Ownership queries, organization membership policy, admin role guard, cross-tenant tests                                                          | Operators with database credentials can bypass the API; use least-privilege database access                            |
+| Seat race / replay                      | Two buyers hold or confirm the same seat                                     | Redis Lua hold script, PostgreSQL allocation transaction, idempotency records, payment-event uniqueness                                          | Redis outage rejects holds; see the [Redis runbook](../runbooks/redis-unavailable.md)                                  |
+| QR forgery / replay                     | Edit a QR, reuse it at another session, or scan it twice concurrently        | HMAC-SHA256, key version, random nonce, opaque public code, session binding, conditional status update, unique check-in row                      | An authorized scanner can still scan a valid ticket; managed secret storage and an operational rotation runbook remain |
+| CSRF / login CSRF                       | A malicious page submits a cookie-backed mutation or issues a session        | Origin allowlist guard, route-scoped session-issuance policy, `SameSite=Lax` cookies, CORS credentials allowlist                                 | Originless session issuance is limited to SSR/service callers with the explicit non-simple header                      |
+| XSS / unsafe output                     | User-controlled event names or search values rendered in the web app         | React escaping, DTO length constraints, Helmet CSP-related defaults, no raw HTML rendering                                                       | CSP is not a substitute for output encoding; audit any future rich-text feature                                        |
+| Injection                               | Query, search, webhook, or body values reach persistence                     | Prisma parameterization, DTO validation, bounded pagination, no shell interpolation                                                              | Raw SQL is limited to reviewed aggregate/update statements                                                             |
+| Enumeration                             | Probe login, tickets, bookings, or metrics                                   | Generic authentication errors, opaque public codes, ownership filters, metrics token in production                                               | Public event discovery is intentionally searchable by product design                                                   |
+| Privilege escalation                    | Change a role/status or organization membership                              | Backend role and organization policy checks, self-moderation denial, audit records, suspended-session revocation                                 | A compromised admin account remains high impact; protect admin credentials and monitor audit logs                      |
+| Secret / PII leakage                    | Request or response logs, metrics, errors                                    | Pino redacts authorization/cookies/passwords/refresh tokens/QR/payment signatures and response `Set-Cookie`; safe error filter; metrics omit PII | Third-party infrastructure logs need equivalent redaction policies                                                     |
+| Dependency / supply chain               | Vulnerable package or leaked environment file                                | Lockfile, `npm audit`/`pnpm audit`, `.gitignore`, CI checks, no secrets in images                                                                | Audit findings must be triaged when advisories change                                                                  |
 
 The seating WebSocket is a public read-only availability channel, so an
 originless native client is allowed. Browser origins are still checked at the
 Socket.IO handshake against `CORS_ORIGINS`, and the gateway bounds connections,
-joined sessions, and join-message rate. Holds, checkout, and every inventory
-mutation remain authenticated HTTP operations; the WebSocket cannot claim or
-sell a seat.
+joined sessions, and join-message rate. Those bounds are process-local; a
+multi-instance deployment needs a shared policy before it can claim to enforce
+fleet-wide limits. Trusted-proxy/IP handling is not configured, so an edge
+deployment must define it explicitly. Holds, checkout, and every inventory mutation remain
+authenticated HTTP operations; the WebSocket cannot claim or sell a seat.
 
 ## Operational invariants
 
 1. Never mark a payment successful from a browser redirect or by editing rows
-   manually. Use a verified provider event and preserve its idempotency key.
+   manually. Use a verified provider event and preserve its provider event ID;
+   the payment-creation idempotency key is a separate outbound-provider field.
 2. Never treat Redis as permanent inventory. A database transaction must make
    a seat `SOLD` before issuing a ticket.
 3. Never put raw database IDs, email addresses, or secrets in QR payloads,
@@ -79,6 +85,8 @@ sell a seat.
 
 - Replace the process-local limiter with a Redis/edge-backed algorithm before
   running more than one API instance.
+- Add a shared admission policy for the public seating WebSocket before
+  scaling beyond one API instance.
 - Add alerting on repeated `AUTHENTICATION_REQUIRED`, `CSRF_ORIGIN_DENIED`,
   `INVALID_QR_SIGNATURE`, payment mismatches, and dead outbox events.
 - Keep QR signing keys in a managed secret store and publish a key-rotation

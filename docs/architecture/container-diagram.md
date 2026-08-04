@@ -7,8 +7,7 @@ flowchart TB
   end
 
   subgraph runtime[Application runtime]
-    api[NestJS modular monolith]
-    worker[Queue and outbox workers]
+    api[NestJS modular monolith + in-process workers]
   end
 
   subgraph data[Stateful dependencies]
@@ -20,9 +19,10 @@ flowchart TB
   browser -->|HTTP, cookies, WebSocket| api
   api --> postgres
   api --> redis
-  worker --> postgres
-  worker --> redis
-  worker --> mailpit
+  api --> mailpit
 ```
 
-The web app and API may run as separate containers but remain one product boundary. Workers share the API codebase and domain contracts while running as a separate process profile when queue throughput requires it.
+The web app and API may run as separate containers but remain one product
+boundary. Workers share the API codebase and domain contracts and execute
+inside the API process, gated by feature flags rather than a separate worker
+container.

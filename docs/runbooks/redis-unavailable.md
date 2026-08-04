@@ -29,4 +29,6 @@
 
 Do not mark seats sold, confirm payments, or edit booking rows manually while
 Redis is unavailable. If recovery is not immediate, keep checkout closed and
-communicate the degraded state rather than bypassing the hold invariant.
+communicate the degraded state rather than bypassing the hold invariant. A
+passing readiness check only means the Redis dependency answered; it does not
+prove holds exist or that the hold window is healthy.

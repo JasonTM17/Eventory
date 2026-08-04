@@ -1,6 +1,10 @@
 # Eventory system overview
 
-Eventory is a modular monolith with one web application and one API process. PostgreSQL owns durable business state; Redis provides expiring coordination and queues; workers execute retryable side effects. External payment and email systems are represented by replaceable adapters.
+Eventory is a modular monolith with one web application and one API process.
+PostgreSQL owns durable business state. Redis provides atomic expiring seat
+holds and expiry notifications. In-process polling workers handle the
+PostgreSQL outbox and booking reconciliation. Payment and email are isolated
+behind replaceable adapters; the current payment adapter runs inside the API.
 
 ## System context
 
@@ -12,11 +16,10 @@ flowchart LR
   organizer[Organizer]
   admin[Admin]
   web[Next.js web app]
-  api[NestJS API]
+  api[NestJS API + workers + mock payment adapter]
   db[(PostgreSQL)]
-  redis[(Redis holds and queues)]
+  redis[(Redis seat holds)]
   mail[Mailpit / Email provider]
-  payment[Mock payment provider]
 
   attendee --> web
   organizer --> web
@@ -24,7 +27,6 @@ flowchart LR
   web -->|HTTPS + WebSocket| api
   api --> db
   api --> redis
-  api --> payment
   redis --> api
   api --> mail
 ```
@@ -39,8 +41,12 @@ flowchart LR
 
 ## Module dependency rules
 
-- Presentation controllers/gateways call application services; they do not contain business invariants.
-- Application services own commands, policies, transactions, and ports.
-- Infrastructure implements ports for Prisma, Redis, queues, email, payments, and QR signing.
-- Domain types do not import framework adapters.
-- Cross-module communication uses explicit application contracts or outbox events; no database table writes from another module’s controller.
+- Business controllers and gateways delegate to services; business invariants
+  live in services and policies.
+- Services own validation, transactions, and orchestration. They may inject the
+  shared `PrismaService` directly, including for cross-domain transactions.
+- Cross-module calls use exported Nest providers. External payment and email
+  boundaries use explicit adapters; the transactional outbox carries durable
+  side effects.
+- Persistence ownership is a review convention, not a mechanically enforced
+  repository layer.

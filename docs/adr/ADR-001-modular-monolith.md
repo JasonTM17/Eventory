@@ -9,11 +9,17 @@ Eventory has many domains but a single portfolio deployment target. Splitting ev
 
 ## Decision
 
-Keep the backend in one NestJS process with explicit module boundaries, ports for external systems, and transactional database ownership. Extract a service only after a measured scaling or isolation need exists.
+Keep the backend in one NestJS process with explicit module boundaries, ports
+for external systems, and shared Prisma transactions when workflows span
+aggregates. Extract a service only after a measured scaling or isolation need
+exists.
 
 ## Consequences
 
-We get simpler local development and cross-domain transactions, while dependency boundaries and queue workers still demonstrate production design. The monolith must resist direct cross-module table writes and unbounded imports.
+We get simpler local development and cross-domain transactions. Module imports
+and controllers provide code boundaries, while persistence ownership is a
+review convention because services share Prisma and may coordinate
+cross-domain transactions.
 
 ## Alternatives considered
 

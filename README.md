@@ -7,26 +7,28 @@ Eventory is a production-oriented full-stack event ticketing platform. It is des
 
 ## Repository status
 
-The local release journey is implemented on the `main` branch. The phase plan,
-architecture records, security model, CI, Docker
-images, and operational runbooks are maintained alongside the code.
+The audited release baseline is `v0.1.2` from
+`c3abeb64013fa88dc80b3550591462b2e4bdbd25`. Its
+[release workflow](https://github.com/JasonTM17/Eventory/actions/runs/30869248045)
+published matching container manifests to Docker Hub and GHCR. The validation
+badge above tracks `main`; registry publication is not deployment.
 
 ## Stack
 
 - pnpm workspaces + Turborepo
 - Next.js App Router + React + TypeScript
 - NestJS modular monolith + Prisma
-- PostgreSQL, Redis, BullMQ-style workers, and Mailpit
+- PostgreSQL, Redis, in-process booking reconciliation/outbox workers, and Mailpit
 - Docker Compose and GitHub Actions
 
 ## Product preview
 
-These artifacts were captured from a seeded local application stack and
-show the public discovery, seat-selection, checkout, and ticket-wallet flows.
-Payment and email delivery are deterministic local integrations; this
-repository does not claim a public demo or a production payment-provider
-connection. The wallet screenshot redacts its locally generated signed QR
-payload before it is committed.
+These artifacts were captured from a seeded local application stack and show
+the public discovery, seat-selection, checkout, and ticket-wallet flows.
+Payment is a deterministic mock provider, email delivery uses Mailpit or any
+SMTP-compatible local transport, and this repository does not claim a hosted
+public demo or production payment-provider connection. The wallet screenshot
+redacts its locally generated signed QR payload before it is committed.
 
 ![Eventory public event discovery showing a seeded event](./assets/images/eventory-demo-discovery.png)
 
@@ -115,19 +117,26 @@ are released separately.
 
 ## Release packages
 
-Release `0.1.1` publishes the application images to both registries:
+Release `0.1.2` publishes the application images for `linux/amd64` from source
+commit `c3abeb64013fa88dc80b3550591462b2e4bdbd25`:
 
 | Service | GitHub Container Registry                                                                                            | Docker Hub                                                                                |
 | ------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| API     | [`ghcr.io/jasontm17/eventory-api:0.1.1`](https://github.com/users/JasonTM17/packages/container/package/eventory-api) | [`nguyenson1710/eventory-api:0.1.1`](https://hub.docker.com/r/nguyenson1710/eventory-api) |
-| Web     | [`ghcr.io/jasontm17/eventory-web:0.1.1`](https://github.com/users/JasonTM17/packages/container/package/eventory-web) | [`nguyenson1710/eventory-web:0.1.1`](https://hub.docker.com/r/nguyenson1710/eventory-web) |
+| API     | [`ghcr.io/jasontm17/eventory-api:0.1.2`](https://github.com/users/JasonTM17/packages/container/package/eventory-api) | [`nguyenson1710/eventory-api:0.1.2`](https://hub.docker.com/r/nguyenson1710/eventory-api) |
+| Web     | [`ghcr.io/jasontm17/eventory-web:0.1.2`](https://github.com/users/JasonTM17/packages/container/package/eventory-web) | [`nguyenson1710/eventory-web:0.1.2`](https://hub.docker.com/r/nguyenson1710/eventory-web) |
 
-The [GitHub Release](https://github.com/JasonTM17/Eventory/releases/tag/v0.1.1)
-records immutable digests and the full source-SHA tags. OCI provenance and SBOM
-attestations accompany each image. Registry publication is not a public
-deployment: the API still requires reviewed runtime secrets and services, and
-the web image uses the local-stack API URL unless rebuilt with
-`NEXT_PUBLIC_API_BASE_URL`.
+The [GitHub Release](https://github.com/JasonTM17/Eventory/releases/tag/v0.1.2)
+records the immutable digests and full source-SHA tags.
+
+| Service | Manifest digest                                                           |
+| ------- | ------------------------------------------------------------------------- |
+| API     | `sha256:305e2e4ff3edb739da87bff67e2c74bbc465bf45cfdf1063407883496f19db6f` |
+| Web     | `sha256:737e054e5e64f2ed9716939764a9da7ccbd089e57b2c5d6a2427f65a827e3629` |
+
+OCI provenance and SBOM attestations accompany each image. Registry
+publication is not a public deployment: the API still requires reviewed
+runtime secrets and services, and the web image uses the local-stack API URL
+unless rebuilt with `NEXT_PUBLIC_API_BASE_URL`.
 
 ## Development rules
 

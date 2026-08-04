@@ -2,11 +2,12 @@
 
 ## Workflow
 
-1. Read the relevant phase in [`plans/20260801-eventory-platform`](./plans/20260801-eventory-platform/).
+1. Read the current docs for the area you are changing, then inspect the code or tests that define the behavior.
 2. Keep file ownership and module boundaries explicit.
-3. Implement a small logical slice with tests for happy and failure paths.
-4. Run formatting, linting, type checking, and the narrowest relevant test suite.
-5. Stage only intended files and run a secret scan before committing.
+3. Implement a small logical slice with happy-path and failure-path coverage.
+4. Run the narrowest useful checks first: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm package:check` when package payloads change, and the smallest relevant test suite.
+5. Stage only intended files, inspect `git diff --cached`, and confirm that no
+   credentials, tokens, dotenv files, or personal data are staged.
 
 ## Commit format
 
@@ -22,7 +23,9 @@ Do not mix unrelated domains, generated files, or drive-by formatting in the sam
 
 ## Pull requests
 
-Describe the behavior changed, the invariants protected, checks run, migration impact, and any follow-up work. A PR is not ready when tests are merely expected to pass; include fresh command output.
+Describe the behavior changed, the invariants protected, checks run, migration
+impact, and any follow-up work. A PR is not ready when tests are merely
+expected to pass; include fresh command output.
 
 ## Local services
 
@@ -31,9 +34,9 @@ up --build` is the full-stack smoke path; `docker compose up -d postgres redis
 mailpit` is the lighter host-development path. Never use production credentials
 locally or commit a local `.env` file.
 
-Pull requests must pass the same format, lint, typecheck, Prisma migration,
-API test, web build, audit, Compose validation, and image-build checks defined
-in `.github/workflows/pull-request.yml`.
+Pull requests must pass the same format, lint, typecheck, package payload,
+Prisma migration, API test, web test, web build, audit, Compose validation,
+and image-build checks defined in `.github/workflows/pull-request.yml`.
 
 ## Line endings
 

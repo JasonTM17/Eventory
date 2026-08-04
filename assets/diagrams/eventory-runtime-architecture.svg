@@ -32,7 +32,7 @@
   <rect x="48" y="42" width="1504" height="916" rx="34" fill="#FFFDF8" stroke="#D8DDD4" />
   <text x="96" y="106" class="eyebrow">EVENTORY / RUNTIME TOPOLOGY</text>
   <text x="96" y="162" class="title">One application, clear state ownership.</text>
-  <text x="96" y="198" class="subtitle">PostgreSQL owns permanent records; Redis owns only expiring seat holds and worker coordination.</text>
+  <text x="96" y="198" class="subtitle">PostgreSQL owns durable records and worker queues; Redis owns only expiring seat holds.</text>
   <line x1="96" y1="232" x2="1504" y2="232" stroke="#D8DDD4" />
 
   <g filter="url(#shadow)">
@@ -66,7 +66,7 @@
     <text x="818" y="378" class="node-title">NestJS API</text>
     <text x="818" y="412" class="node-copy">Identity + authorization</text>
     <text x="818" y="438" class="node-copy">Events, seating, bookings</text>
-    <text x="818" y="464" class="node-copy">Payments, tickets, analytics</text>
+    <text x="818" y="464" class="node-copy">Payments, tickets, analytics, workers</text>
     <line x1="818" y1="490" x2="1126" y2="490" stroke="#D8DDD4" />
     <text x="818" y="523" class="small">Rate limits · signed QR · audit logs</text>
     <text x="818" y="550" class="small">REST /api/v1 · Socket.IO /seating</text>
@@ -87,7 +87,7 @@
     <rect x="1230" y="466" width="270" height="42" rx="22" fill="#FFF0D0" />
     <text x="1254" y="494" class="node-tag">EPHEMERAL STATE</text>
     <text x="1254" y="544" class="node-title">Redis</text>
-    <text x="1254" y="574" class="node-copy">Atomic holds, queues, leases</text>
+    <text x="1254" y="574" class="node-copy">Atomic expiring seat holds</text>
   </g>
 
   <g filter="url(#shadow)">

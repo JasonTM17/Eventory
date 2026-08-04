@@ -2,15 +2,15 @@
 
 The executable plan is maintained by the CK plan CLI at [`plans/20260801-eventory-platform/plan.md`](../plans/20260801-eventory-platform/plan.md). It is intentionally separate from this short index so phase status remains machine-readable.
 
-The original 13-phase plan is completed. Its delivery branch was merged into
-`main`; the current release-hardening follow-up is tracked in
-[`plans/20260801-release-hardening/plan.md`](../plans/20260801-release-hardening/plan.md).
-Local verification status and intentionally deferred production decisions are
-summarized in [`project-roadmap.md`](./project-roadmap.md).
+The original 13-phase plan and the subsequent release-hardening plan are
+completed and merged into `main`. Their delivery evidence remains under
+[`plans/`](../plans/); released versions are recorded in
+[`CHANGELOG.md`](../CHANGELOG.md), while deferred production work is listed in
+the [roadmap](./project-roadmap.md).
 
 ## Goal
 
-Deliver a local, testable, production-oriented ticketing platform from an empty checkout: organizer event publishing, attendee discovery and booking, race-safe seat holds, simulated payments, signed QR tickets, organizer check-in, asynchronous notifications, analytics/admin surfaces, security/observability, Docker, CI, and complete operational documentation.
+Deliver a local, testable, production-oriented ticketing platform from an empty checkout: organizer event publishing, attendee discovery and booking, race-safe seat holds, simulated payments, signed QR tickets, organizer check-in, asynchronous notifications, analytics/admin surfaces, security/observability, Docker, CI, and documented local operations and release-artifact procedures.
 
 ## Phase sequence
 
@@ -48,3 +48,4 @@ Deliver a local, testable, production-oriented ticketing platform from an empty 
 - [ADR-006 Cookie authentication](./adr/ADR-006-cookie-based-authentication.md)
 - [ADR-007 Mock payment provider](./adr/ADR-007-mock-payment-provider.md)
 - [ADR-008 Monorepo structure](./adr/ADR-008-monorepo-structure.md)
+- [ADR-009 Signed ticket check-in](./adr/ADR-009-signed-ticket-check-in.md)

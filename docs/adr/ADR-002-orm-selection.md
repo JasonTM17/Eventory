@@ -9,7 +9,7 @@ The platform needs explicit migrations, typed queries, constraints, and transact
 
 ## Decision
 
-Use Prisma with migrations from the first schema. The Prisma 7 `prisma-client` generator writes generated code under the API source tree, while `prisma.config.ts` owns the datasource URL used by CLI commands. Runtime access uses the PostgreSQL driver adapter so the generated client is created once by the infrastructure module and lifecycle-managed by NestJS. Keep domain/application services independent of Prisma by isolating the client in infrastructure repositories and transaction adapters.
+Use Prisma with migrations from the first schema. The Prisma 7 `prisma-client` generator writes generated code under the API source tree, while `prisma.config.ts` owns the datasource URL used by CLI commands. Runtime access uses the PostgreSQL driver adapter so the generated client is created once by the infrastructure module and lifecycle-managed by NestJS. Keep domain/application services independent of Prisma by isolating the client in infrastructure services and transaction adapters; do not invent a generic repository abstraction just to hide the queries.
 
 ## Consequences
 

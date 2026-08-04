@@ -1,12 +1,16 @@
 # Booking hold uniqueness migration runbook
 
-The booking/payment integrity migration adds a database-owned unique invariant
-on `bookings.holdId`. Redis holds remain temporary; PostgreSQL owns the durable
-one-checkout claim.
+Migration `20260802100000_booking_payment_integrity` adds the unique
+`bookings.holdId` invariant, changes payment status/idempotency/provider fields,
+and creates durable payment-reconciliation storage. Redis holds remain
+temporary; PostgreSQL owns the durable one-checkout claim.
 
 ## Preflight
 
-Run the migration against a backup or staging copy first. The migration checks
+Run the migration against a backup or staging copy first. Its non-concurrent
+`CREATE UNIQUE INDEX` can block live writes, so assess lock duration, application
+compatibility, maintenance/traffic-drain ownership, and tested backup/restore
+before production use. The migration checks
 for duplicate `holdId` values and fails with:
 
 ```text
@@ -28,7 +32,7 @@ rows inside the migration.
 5. Re-run the migration only after a reviewed check confirms every `holdId` is
    unique.
 
-## Validation and rollback
+## Validation and forward recovery
 
 The migration is forward-only once the unique index is created. Validate on a
 clean database, inspect `_prisma_migrations`, and run the focused booking/

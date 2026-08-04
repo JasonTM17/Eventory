@@ -15,7 +15,9 @@ The API resolves the opaque code, verifies the stored nonce and session binding,
 
 ## Consequences
 
-- Forged, replayed for another session, or rotated-key QR values fail before ticket state is touched.
+- Forged values, values replayed for another session, and values signed with an
+  unconfigured or retired key version fail before ticket state is touched.
+  Retained previous key versions remain valid during the rotation window.
 - Check-in history retains the ticket, session, scanner identity when available, and timestamp.
 - Scanners require online API access in the first release. Offline queues are intentionally deferred because they need a conflict/reconciliation policy and trusted device keys.
-- Key rotation is a compatibility window: add the new version and retain the previous secret in `QR_SIGNING_KEYS`, deploy, then make the new version active. Remove an old secret only after every ticket signed with that version has expired or been reissued. Secrets belong in a managed secret store, never in `.env.example` or source control.
+- Key rotation is a compatibility window: add the new version and retain the previous secret in `QR_SIGNING_KEYS`, deploy, then make the new version active. Remove an old secret only after every ticket signed with that version has expired or been reissued. Retired keys stay in the keyring only until operational cleanup is complete. Secrets belong in a managed secret store, never in `.env.example` or source control.

@@ -18,7 +18,14 @@
 
 - Restart only PostgreSQL after confirming no migration is running:
   `docker compose restart postgres`.
-- Wait for the health check, then run `pnpm db:migrate` and a readiness probe.
+- Wait for the database health check, verify connectivity, and inspect
+  `pnpm --filter @eventory/api exec prisma migrate status`. Apply pending
+  migrations only through a separate approved deployment window with backup,
+  compatibility, and lock-impact checks.
+- Reopen traffic only after application smoke checks and worker backlog/state
+  checks. `/api/v1/health/ready` proves PostgreSQL and Redis connectivity only;
+  it does not prove schema compatibility, SMTP delivery, worker liveness,
+  backups, or reconciliation health.
 - Restore from a verified backup only with an approved change window. Validate
   migrations and foreign-key integrity before reopening sales.
 
@@ -28,3 +35,5 @@ Never delete the named Postgres volume to fix an availability incident. Never
 replay a payment blindly after a timeout: first inspect the provider event ID
 and `payment_events` idempotency row. Reconcile through a reviewed command so
 that booking, seat, payment, ticket, and outbox state remain consistent.
+Do not treat an outage as a trigger for automatic schema repair; apply reviewed
+migrations only after the database is healthy.

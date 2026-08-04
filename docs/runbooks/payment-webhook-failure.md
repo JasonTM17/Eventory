@@ -12,18 +12,22 @@
 2. Verify webhook HMAC, provider reference, amount, and currency. A mismatch is a data-integrity signal, not a retryable success.
 3. Inspect outbox attempts and `nextAttemptAt`. A `PROCESSING` row older than five minutes is eligible for reclaim.
 4. Check Mailpit/SMTP health and credentials without printing message bodies, tokens, or recipient lists.
-5. Query open `payment_reconciliations` rows and correlate the provider event ID
-   with the signed provider dashboard; do not expose payment secrets in tickets.
+5. Query open `payment_reconciliations` rows and correlate the provider event ID,
+   payment reference, audit record, and exact signed mock payload. A provider
+   dashboard is a future real-provider procedure, not part of this repository.
 6. Query `payment_webhook_inbox` for `RECEIVED` rows when a webhook arrived before
    Eventory had persisted the provider reference. The inbox is durable and is
-   retried by the booking reconciliation worker; do not delete or replay rows by
-   hand.
+   retried only when `BOOKING_RECONCILIATION_WORKER_ENABLED=true`; there is no
+   dedicated worker-health endpoint. Do not delete or replay rows by hand.
 
 ## Recovery
 
 - Re-send the same signed provider event ID. The unique provider event constraint makes the state transition idempotent.
 - For transient email failures, let the worker retry with bounded backoff.
-- For a `DEAD` notification, correct the dependency and replay the outbox row through an authenticated operator action; preserve the original error for audit.
+- A `DEAD` notification has no authenticated replay command today. Preserve the
+  original error and use a reviewed database/operator procedure only after the
+  dependency is healthy. Do not imply that payment-reconciliation resolution
+  replays an outbox event.
 - Never edit `seat_allocations`, `payments`, or `bookings` by hand to force a success. Use a reviewed reconciliation command.
 - A late capture after hold expiry is intentionally manual in the mock contract:
   it leaves the booking without tickets, payment status

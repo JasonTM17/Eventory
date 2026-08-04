@@ -13,7 +13,9 @@ Use pnpm workspaces with Turborepo task orchestration. Applications live under `
 
 ## Consequences
 
-One lockfile and shared tooling make compatibility review easier. Package dependency direction must be enforced in lint/build configuration to avoid importing server-only code into the browser.
+One lockfile and shared tooling make compatibility review easier. Package
+direction is currently expressed through workspace manifests and review
+conventions; lint does not yet enforce browser/server import boundaries.
 
 ## Alternatives considered
 

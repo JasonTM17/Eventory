@@ -5,8 +5,10 @@
 1. Repository/tooling and local PostgreSQL/Redis/Mailpit foundation.
 2. NestJS API, Prisma schema, identity, authorization, organizations, venues,
    events, and deterministic seed.
-3. Next.js discovery/organizer UI and real-time atomic seat holds.
-4. Transactional bookings, mock payment webhooks, outbox notifications.
+3. Next.js discovery/organizer UI, server/client component boundaries, and
+   real-time atomic seat holds.
+4. Transactional bookings, mock payment webhooks, payment reconciliation,
+   and outbox notifications.
 5. Signed QR ticket wallet, online organizer check-in, analytics, and admin.
 6. Rate limits, Origin CSRF, session-origin guard for login/register/refresh,
    body/security headers, audits, metrics, threat model, runbooks, monitoring
@@ -18,14 +20,16 @@
 9. Exact private-workspace package payload checks, real product GIF/screenshots,
    and exported runtime/booking diagrams.
 10. Paired Docker Hub/GHCR release packages with semantic/full-SHA tags,
-    provenance, SBOM attestations, changelog, and GitHub Release records.
+    provenance, SBOM attestations, changelog, and GitHub Release records for
+    `v0.1.2`.
 
 The current local verification baseline is 17 API suites with 47 tests and 0
-failures against an owned Compose dependency project, plus the web storage
-regression, format, lint, typecheck, package payload, web build, audit, Prisma
-validation, and Compose config checks. A new remote workflow run for local-only
-commits and a public deployment URL remain release decisions rather than
-undocumented assumptions.
+failures against an owned Compose dependency project, plus the 4-file web
+suite with 10 test cases, format, lint, typecheck, package payload, web build,
+audit, Prisma validation, and Compose config checks. The current release
+artifacts are `v0.1.2` from `c3abeb64013fa88dc80b3550591462b2e4bdbd25`; a
+public deployment URL remains a release decision rather than an undocumented
+assumption.
 
 ## Next increments
 

@@ -3,9 +3,11 @@
 ## Applications
 
 - `apps/api`: NestJS 11 modular monolith, Prisma 7 schema/migrations, Redis
-  seat holds, Mailpit outbox worker, signed QR, analytics/admin APIs.
+  seat holds, in-process outbox and booking-reconciliation workers, signed QR,
+  payment inbox/reconciliation flows, and analytics/admin APIs.
 - `apps/web`: Next.js 16 App Router, server-rendered discovery/organizer/admin
-  routes and client seat/checkout/ticket/check-in interactions.
+  routes, and focused client components for seat selection, checkout, wallet,
+  and check-in helpers.
 
 ## Shared packages
 
@@ -19,13 +21,14 @@
 
 - `compose.yaml`: PostgreSQL, Redis, Mailpit, API, web, and optional monitoring.
 - `apps/api/Dockerfile` and `apps/web/Dockerfile`: multi-stage non-root images.
-- `.github/workflows/pull-request.yml`: dependency-backed tests and image
-  builds; `.github/workflows/main.yml`: repeat validation, focused web
-  regressions, and versioned image artifacts; `.github/workflows/release.yml`:
-  paired Docker Hub/GHCR publication with OCI provenance and SBOM attestations.
+- `.github/workflows/pull-request.yml`: dependency-backed tests, package
+  payload checks, and image builds; `.github/workflows/main.yml`: repeat
+  validation, focused web regressions, and versioned image artifacts;
+  `.github/workflows/release.yml`: paired Docker Hub/GHCR publication with OCI
+  provenance and SBOM attestations.
 - `scripts/run-integration-tests.mjs`: owned dependencies-only Compose harness
-  with dynamic ports, database/Redis sentinels, migration deployment, API
-  tests, and scoped cleanup.
+  with dynamic ports, database/Redis/Mailpit sentinels, migration deployment,
+  API tests, and cleanup of the temporary project volume set.
 - `plans/20260801-eventory-platform`: original delivery phases;
   `plans/20260801-release-hardening`: payment, worker, WebSocket, QR, CI, and
   portfolio hardening evidence.

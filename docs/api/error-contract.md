@@ -18,7 +18,10 @@ Every versioned API error is returned as JSON with the same top-level fields:
 - `code` is a stable machine-readable value; clients must not branch on prose.
 - `message` is safe for a user-facing summary and never contains stack traces, SQL, secrets, or internal file paths.
 - `requestId` matches the `x-request-id` response header and is safe to share with support.
-- `details` contains bounded, field-level validation or conflict data; it is `{}` when no safe details exist.
+- Validation-detail arrays are capped at 20 entries. Trusted exception objects
+  may provide other structured conflict details; object depth, key count, and
+  serialized size are not yet bounded by the filter. `details` is `{}` when no
+  safe details exist.
 
 ## Status mapping
 

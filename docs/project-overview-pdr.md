@@ -2,28 +2,32 @@
 
 ## Product goal
 
-Eventory provides a trustworthy local/demo ticketing journey for attendees,
-organizers, and platform administrators: discover an event, reserve seats,
-checkout with a signed mock payment callback, receive a QR ticket, and perform
-an authorized check-in.
+Eventory provides a locally runnable, container-packaged ticketing journey for
+attendees, organizers, and platform administrators: discover an event, reserve
+seats, complete checkout through the local mock payment provider, receive a
+signed QR ticket, and perform an authorized check-in. The current audited
+release is `v0.1.2`; publication is artifact release only, not deployment.
 
 ## Personas
 
-| Persona        | Need                                     | Release capability                                   |
-| -------------- | ---------------------------------------- | ---------------------------------------------------- |
-| Attendee       | Discover, reserve, pay, and keep tickets | Public discovery, atomic holds, checkout, wallet, QR |
-| Organizer      | Publish inventory and operate entry      | Venue/seats, event lifecycle, analytics, scanner     |
-| Platform admin | Moderate users and investigate           | Paginated admin views, suspension, audit logs        |
+| Persona        | Need                                     | Release capability                                    |
+| -------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Attendee       | Discover, reserve, pay, and keep tickets | Public discovery, atomic holds, checkout, wallet, QR  |
+| Organizer      | Publish inventory and operate entry      | Web drafts; API inventory, sales, analytics, check-in |
+| Platform admin | Moderate users and investigate           | Paginated admin views, suspension, audit logs         |
 
 ## Functional requirements
 
 1. Users register/login with Argon2id and rotating HttpOnly refresh sessions.
 2. Organizers create organizations, venues, seats, sessions, ticket types, and
-   publish/open sales through backend authorization policies.
+   publish/open sales through backend authorization policies that gate the API,
+   not only the web UI.
 3. Attendees see public events, hold seats atomically, create idempotent
-   bookings, and complete a signed mock payment webhook.
-4. Payment confirmation changes durable seat/ticket state in one transaction
-   and emits retryable outbox notifications.
+   bookings, and complete checkout through the mock payment adapter; the
+   separate webhook endpoint accepts signed provider-contract events.
+4. Payment confirmation changes durable seat/ticket state in one transaction,
+   records reconciliation data when needed, and emits retryable outbox
+   notifications.
 5. Tickets contain opaque signed QR material; check-in is session-bound,
    organization-authorized, and concurrency-safe.
 6. Organizers see bounded analytics; admins can page safe user/org/event/audit
@@ -54,10 +58,11 @@ an authorized check-in.
 - Docker Compose config validates, API/web images build, and health checks
   expose dependency readiness.
 - Threat model, testing strategy, runbooks, deployment guide, CI workflows,
-  and ADRs match the implemented code.
+  and ADRs match the implemented code and release artifacts.
 
 ## Scope boundary
 
 Real payment settlement, offline scanning, third-party identity, cloud
-deployment, and multi-region scaling are explicit extension points. They are
-not implied by the local mock provider or the development monitoring profile.
+deployment, hosted public demo, and multi-region scaling are explicit extension
+points. They are not implied by the local mock provider or the development
+monitoring profile.

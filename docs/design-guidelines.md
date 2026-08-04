@@ -1,6 +1,9 @@
 # Eventory design guidelines
 
-Eventory uses an editorial, high-contrast visual language: warm paper surfaces, ink-black structure, and a lime signal for actions that move a user forward. The interface should feel calm enough for checkout and expressive enough for discovery.
+Eventory uses an editorial, high-contrast visual language: warm paper
+surfaces, ink-black structure, and a lime signal for actions that move a user
+forward. The interface should feel calm enough for checkout and expressive
+enough for discovery.
 
 ## Tokens
 
@@ -22,7 +25,10 @@ Eventory uses an editorial, high-contrast visual language: warm paper surfaces, 
 - Loading, empty, forbidden, and unavailable states keep the surrounding layout stable and explain a recovery action.
 - Empty discovery and an unavailable discovery service are separate states. The copy must not imply that an outage means there are no events.
 - The API remains the authorization boundary. Hiding a link or route in the web app never grants access.
-- Responsive layouts collapse to one column at 800px, preserve reading order, and never require horizontal scrolling.
+- Responsive page layouts collapse to one column at 800px, preserve reading
+  order, and avoid page-level horizontal overflow. Dense seat maps may use a
+  labeled, bounded horizontal viewport on narrow screens when preserving the
+  auditorium layout is necessary.
 
 ## Typography and content
 
@@ -32,4 +38,9 @@ Eventory uses an editorial, high-contrast visual language: warm paper surfaces, 
 
 ## Component boundaries
 
-The shared `@eventory/ui` package contains presentation primitives (`Button`, `Card`, `Field`, `StatusBadge`, and `Container`). Route components own domain composition. Client components are limited to forms and interactive workspace controls; public discovery stays server-rendered. Public discovery artwork may be CSS or SVG, but it is decorative, hidden from assistive technology, and never represents live event data without an API field.
+The shared `@eventory/ui` package contains presentation primitives for common
+controls and containers. Route components own domain composition. Client
+components are used where browser state, interactive API calls, live seat
+updates, or QR rendering require them; route-level public discovery and data
+loading remain server-rendered. Decorative discovery artwork is hidden from
+assistive technology and never represents live event data without an API field.

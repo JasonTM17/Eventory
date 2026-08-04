@@ -2,13 +2,13 @@
 
 ## Test pyramid
 
-| Layer         | Scope                                     | Examples                                                             |
-| ------------- | ----------------------------------------- | -------------------------------------------------------------------- |
-| Unit          | Pure policies, signing, guards, parsers   | QR payload verification, password policy, rate-limit budget          |
-| Integration   | Nest module + real PostgreSQL/Redis       | identity sessions, organizations, event inventory, outbox delivery   |
-| Concurrency   | Competing requests against the same state | seat holds and eight simultaneous QR scans                           |
-| Contract/UI   | Shared DTOs and Next.js routes            | discovery, seat selection, checkout hold cleanup, ticket wallet      |
-| Build/quality | Repository-wide regressions               | format, ESLint, TypeScript, package payloads, Prisma, web/API builds |
+| Layer              | Scope                                               | Examples                                                                |
+| ------------------ | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| Unit               | Pure policies, signing, guards, parsers             | QR payload verification, password policy, rate-limit budget             |
+| Integration        | Nest module + real PostgreSQL/Redis                 | identity sessions, organizations, event inventory, outbox delivery      |
+| Concurrency        | Competing requests against the same state           | seat holds and eight simultaneous QR scans                              |
+| Web utility/layout | Pure client utilities and static layout regressions | auth redirects, checkout storage cleanup, responsive CSS, seat ordering |
+| Build/quality      | Repository-wide regressions                         | format, ESLint, TypeScript, package payloads, Prisma, web/API builds    |
 
 ## Local prerequisites
 
@@ -37,10 +37,13 @@ pnpm --filter @eventory/web build
 pnpm --filter @eventory/api db:validate
 ```
 
-For a focused API test file, first run the owned dependency target or provide
-equivalent `eventory_test`/Redis services, then run it from `apps/api`:
+For a focused API test file, first ensure generated Prisma/config output is up
+to date, then provide equivalent `eventory_test`/Redis services and run it
+from `apps/api`:
 
 ```powershell
+pnpm --filter @eventory/config build
+pnpm --filter @eventory/api prisma:generate
 node --require ts-node/register --test test/check-in.e2e.test.ts
 ```
 
@@ -63,6 +66,8 @@ node --require ts-node/register --test test/check-in.e2e.test.ts
   changes so ts-node tests exercise current contracts.
 - The dependencies-only Compose target has no application or outbox worker;
   test assertions cannot be consumed by a concurrently running worker.
+- The web suite currently contains 4 test files with 10 test cases; layout
+  regressions and storage cleanup are covered there rather than through the API.
 
 ## Security and failure matrix
 
