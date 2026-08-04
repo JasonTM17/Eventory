@@ -1,6 +1,7 @@
 node_modules
 dist
 .next
+apps/web/next-env.d.ts
 .turbo
 coverage
 pnpm-lock.yaml

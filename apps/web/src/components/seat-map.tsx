@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { io, type Socket } from 'socket.io-client';
 import type {
   SeatAvailability,
@@ -10,6 +11,7 @@ import type {
 } from '@eventory/contracts';
 import { Button, Card, StatusBadge } from '@eventory/ui';
 import { apiBaseUrl, apiRequest, isApiError } from '../lib/api';
+import { groupSeatsByRow, hasAisleAfter } from '../lib/seat-map-layout';
 
 interface SeatMapProps {
   eventSessionId: string;
@@ -27,6 +29,7 @@ function holdStorageKey(eventSessionId: string): string {
 }
 
 export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.Element {
+  const router = useRouter();
   const [seats, setSeats] = useState<SeatAvailability[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [hold, setHold] = useState<SeatHoldResponse | null>(null);
@@ -118,12 +121,7 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
     return () => window.clearInterval(timer);
   }, [hold, refresh]);
 
-  const rows = useMemo(() => {
-    const grouped = new Map<string, SeatAvailability[]>();
-    for (const seat of seats)
-      grouped.set(seat.rowLabel, [...(grouped.get(seat.rowLabel) ?? []), seat]);
-    return [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right));
-  }, [seats]);
+  const rows = useMemo(() => groupSeatsByRow(seats), [seats]);
 
   function toggleSeat(seat: SeatAvailability): void {
     if (!salesOpen || hold || seat.status !== 'available') return;
@@ -150,6 +148,11 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
       setSecondsLeft(Math.ceil((new Date(response.expiresAt).getTime() - Date.now()) / 1_000));
       setMessage('Seats are held for you. Continue to checkout before the timer ends.');
     } catch (requestError) {
+      if (isApiError(requestError, 401)) {
+        const nextPath = `${window.location.pathname}${window.location.search}`;
+        router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+        return;
+      }
       const errorMessage = isApiError(requestError)
         ? (requestError.body.message ?? 'Those seats were just taken.')
         : 'The seating service is unavailable.';
@@ -187,37 +190,60 @@ export function SeatMap({ eventSessionId, eventName }: SeatMapProps): React.JSX.
     <Card className="seat-map-card">
       <div className="seat-map-card__header">
         <div>
-          <span className="kicker">Choose your seats</span>
+          <span className="kicker">
+            {seats[0]?.sectionName ?? 'Auditorium'} / choose your seats
+          </span>
           <h2>{eventName}</h2>
         </div>
-        <StatusBadge label={live ? 'Live map' : 'Refreshing'} tone={live ? 'success' : 'warning'} />
+        <div className="seat-map-card__status">
+          <span>
+            {seats.length} seats · {rows.length} rows
+          </span>
+          <StatusBadge
+            label={live ? 'Live map' : 'Refreshing'}
+            tone={live ? 'success' : 'warning'}
+          />
+        </div>
       </div>
-      <div className="seat-stage" aria-hidden="true">
-        STAGE
+      <div className="seat-screen" aria-hidden="true">
+        <span>SCREEN</span>
       </div>
       <div className="seat-grid" aria-label="Seat map">
-        {rows.map(([row, rowSeats]) => (
-          <div className="seat-row" key={row}>
-            <span className="seat-row__label">{row}</span>
-            {rowSeats.map((seat) => {
-              const isSelected = selected.includes(seat.seatId);
-              const isDisabled = !salesOpen || seat.status !== 'available' || Boolean(hold);
-              return (
-                <button
-                  type="button"
-                  key={seat.seatId}
-                  className={`seat ${isSelected ? 'seat--selected' : ''} seat--${seat.status}`}
-                  aria-label={`Row ${seat.rowLabel}, seat ${seat.seatNumber}, ${seat.status}`}
-                  aria-pressed={isSelected}
-                  disabled={isDisabled}
-                  onClick={() => toggleSeat(seat)}
-                >
-                  {seat.seatNumber}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        <div className="seat-grid__canvas">
+          {rows.map((row) => (
+            <div className="seat-row" key={row.label}>
+              <span className="seat-row__label">{row.label}</span>
+              {row.seats.map((seat) => {
+                const isSelected = selected.includes(seat.seatId);
+                const isDisabled = !salesOpen || seat.status !== 'available' || Boolean(hold);
+                const className = [
+                  'seat',
+                  `seat--${seat.status}`,
+                  isSelected && 'seat--selected',
+                  hasAisleAfter(seat.seatNumber) && 'seat--aisle-after',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+                return (
+                  <button
+                    type="button"
+                    key={seat.seatId}
+                    className={className}
+                    aria-label={`Row ${seat.rowLabel}, seat ${seat.seatNumber}, ${seat.status}`}
+                    aria-pressed={isSelected}
+                    disabled={isDisabled}
+                    onClick={() => toggleSeat(seat)}
+                  >
+                    {seat.seatNumber}
+                  </button>
+                );
+              })}
+              <span className="seat-row__label seat-row__label--end" aria-hidden="true">
+                {row.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="seat-legend">
         <span>

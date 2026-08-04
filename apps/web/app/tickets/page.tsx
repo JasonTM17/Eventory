@@ -39,19 +39,19 @@ export default async function TicketsPage(): Promise<React.JSX.Element> {
   }
 
   return (
-    <div className="page-shell">
+    <div className="page-shell page-shell--wallet">
       <Container>
-        <div className="directory-header">
+        <div className="wallet-hero">
           <div>
-            <span className="kicker">Attendee wallet</span>
+            <span className="kicker">Eventory wallet / {user.displayName}</span>
             <h1>Your way in.</h1>
           </div>
           <p>
-            Signed tickets are bound to their event session and can be validated only by its
-            organizer team.
+            Your confirmed passes live here. Each ticket is signed for one session and can be
+            validated only by its organizer team.
           </p>
         </div>
-        <div style={{ marginTop: 28 }}>
+        <div className="wallet-content">
           <TicketWallet tickets={tickets} />
         </div>
       </Container>

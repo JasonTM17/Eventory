@@ -6,12 +6,18 @@ import { formatDate, formatMoney, statusTone } from '../lib/format';
 export function EventCard({ event }: { event: EventSummary }): React.JSX.Element {
   const lowestPrice = event.ticketTypes[0];
   const eventDate = formatDate(event.startAt, event.timezone);
+  const nextSession = event.sessions[0];
+  const posterTone = (event.slug.charCodeAt(0) + event.slug.length) % 4;
 
   return (
     <Card className="event-card">
-      <div className="event-card__visual" aria-hidden="true">
+      <div
+        className={`event-card__visual event-card__visual--tone-${posterTone}`}
+        aria-hidden="true"
+      >
         <span className="event-card__visual-mark">E</span>
-        <span className="event-card__visual-label">Eventory / ticket</span>
+        <span className="event-card__visual-label">Now booking / Eventory</span>
+        <strong className="event-card__visual-title">{event.name}</strong>
         <span className="event-card__visual-date">{eventDate}</span>
         <span className="event-card__visual-cut" />
       </div>
@@ -24,6 +30,12 @@ export function EventCard({ event }: { event: EventSummary }): React.JSX.Element
         <p className="event-card__description">
           {event.description ?? 'Details will be shared by the organizer.'}
         </p>
+        <div className="event-card__showtime">
+          <span>{nextSession ? 'Next session' : 'Schedule'}</span>
+          <strong>
+            {nextSession ? formatDate(nextSession.startAt, event.timezone) : 'Coming soon'}
+          </strong>
+        </div>
         <div className="event-card__footer">
           <span>{event.venue?.name ?? 'Venue to be announced'}</span>
           <span>
@@ -33,7 +45,7 @@ export function EventCard({ event }: { event: EventSummary }): React.JSX.Element
           </span>
         </div>
         <Link className="text-link" href={`/events/${event.slug}`}>
-          View event <span aria-hidden="true">↗</span>
+          View showtimes <span aria-hidden="true">↗</span>
         </Link>
       </div>
     </Card>

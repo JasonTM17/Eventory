@@ -22,6 +22,12 @@ export function TicketWallet({ tickets }: { tickets: TicketSummary[] }): React.J
     <div className="wallet-grid">
       {tickets.map((ticket) => (
         <Card className="wallet-ticket" key={ticket.id}>
+          <div className="wallet-ticket__brand" aria-label="Eventory ticket">
+            <span className="brand__mark" aria-hidden="true">
+              E
+            </span>
+            <span>eventory pass</span>
+          </div>
           <div className="wallet-ticket__header">
             <div>
               <span className="kicker">{ticket.publicCode}</span>
@@ -43,10 +49,7 @@ export function TicketWallet({ tickets }: { tickets: TicketSummary[] }): React.J
           </div>
           <div className="wallet-ticket__qr">
             <TicketQrCode payload={ticket.qrPayload} code={ticket.publicCode} />
-            <p>
-              Show this signed code to the organizer scanner. Screenshots work online; do not share
-              it publicly.
-            </p>
+            <p>Show this signed code at the door. Keep it private until you arrive.</p>
           </div>
           <div className="wallet-ticket__footer">
             <span>{formatMoney(ticket.priceMinor, ticket.currency)}</span>

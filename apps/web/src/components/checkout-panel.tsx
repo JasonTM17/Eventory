@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import type { BookingSummary, SeatHoldResponse } from '@eventory/contracts';
 import { Button, Card, StatusBadge } from '@eventory/ui';
 import { apiRequest, isApiError } from '../lib/api';
@@ -80,14 +81,14 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
     clearConfirmedCheckoutStorage(window.sessionStorage, eventSessionId, hold.holdId);
   }, [booking?.status, eventSessionId, hold]);
 
-  async function completeMock(outcome: 'succeed' | 'fail'): Promise<void> {
+  async function completePayment(): Promise<void> {
     if (!booking?.payment?.providerReference) return;
     setBusy(true);
     setError('');
     try {
       const updated = await apiRequest<BookingSummary>(
         `/payments/mock/${encodeURIComponent(booking.payment.providerReference)}/complete`,
-        { method: 'POST', body: JSON.stringify({ outcome }) },
+        { method: 'POST', body: JSON.stringify({ outcome: 'succeed' }) },
       );
       setBooking(updated);
     } catch (requestError) {
@@ -148,30 +149,28 @@ export function CheckoutPanel({ eventSessionId }: CheckoutPanelProps): React.JSX
           </div>
           {booking.status === 'PENDING' && booking.payment?.providerReference ? (
             <div className="checkout-actions">
-              <p>Mock payment is ready. Choose a result to exercise the full callback flow.</p>
-              <div>
-                <Button onClick={() => void completeMock('succeed')} disabled={busy}>
-                  {busy ? 'Processing…' : 'Pay successfully'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => void completeMock('fail')}
-                  disabled={busy}
-                >
-                  Simulate failure
-                </Button>
-              </div>
+              <p>Your seat is reserved while payment completes. Confirm to issue your ticket.</p>
+              <Button onClick={() => void completePayment()} disabled={busy}>
+                {busy ? 'Processing payment…' : 'Complete payment'}
+              </Button>
             </div>
           ) : booking.status === 'PENDING' ? (
             <p className="empty-state">
               Payment initialization is syncing. This page will refresh automatically.
             </p>
           ) : (
-            <p className={booking.status === 'CONFIRMED' ? 'form-success' : 'form-error'}>
-              {booking.status === 'CONFIRMED'
-                ? 'Payment confirmed. Your tickets are being issued.'
-                : `Booking is ${booking.status.toLowerCase().replace('_', ' ')}.`}
-            </p>
+            <div className={booking.status === 'CONFIRMED' ? 'checkout-success' : 'form-error'}>
+              {booking.status === 'CONFIRMED' ? (
+                <>
+                  <span>Payment confirmed. Your signed ticket is ready.</span>
+                  <Link className="ui-button" href="/tickets">
+                    View my ticket
+                  </Link>
+                </>
+              ) : (
+                `Booking is ${booking.status.toLowerCase().replace('_', ' ')}.`
+              )}
+            </div>
           )}
         </>
       ) : (

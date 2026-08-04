@@ -31,9 +31,6 @@ export default async function EventDetailPage({
     if (isApiError(error, 404)) notFound();
     throw error;
   }
-  const firstSession = event.sessions[0];
-  const seatsHref = firstSession ? `/events/${event.slug}/seats/${firstSession.id}` : undefined;
-  const signInHref = seatsHref ? `/login?next=${encodeURIComponent(seatsHref)}` : '/login';
   return (
     <div className="page-shell">
       <Container>
@@ -62,31 +59,45 @@ export default async function EventDetailPage({
                 <strong>{event.sessions.length} programmed</strong>
               </div>
             </div>
-            <Link className="text-link" href={signInHref}>
-              Sign in to reserve a seat ↗
-            </Link>
           </div>
           <Card className="ticket-panel">
-            <span className="kicker">Ticket desk</span>
-            <h2>Choose your way in.</h2>
-            {event.ticketTypes.length ? (
-              event.ticketTypes.map((ticket) => (
-                <div className="ticket-row" key={ticket.id}>
-                  <span>
-                    <strong>{ticket.name}</strong>
-                    <small>{ticket.description ?? 'Admission ticket'}</small>
-                  </span>
-                  <strong>{formatMoney(ticket.priceMinor, ticket.currency)}</strong>
-                </div>
-              ))
+            <span className="kicker">Showtimes</span>
+            <h2>Choose a session.</h2>
+            {event.sessions.length ? (
+              <div className="showtime-list">
+                {event.sessions.map((session) => (
+                  <Link
+                    className="showtime-row"
+                    href={`/events/${event.slug}/seats/${session.id}`}
+                    key={session.id}
+                  >
+                    <span>
+                      <strong>{session.name}</strong>
+                      <small>{formatDate(session.startAt, event.timezone)}</small>
+                    </span>
+                    <span aria-hidden="true">Select seats →</span>
+                  </Link>
+                ))}
+              </div>
             ) : (
-              <p className="empty-state">Tickets are not on sale yet.</p>
+              <p className="empty-state">No sessions are scheduled yet.</p>
             )}
-            {seatsHref ? (
-              <Link className="ui-button ui-button--primary ticket-panel__cta" href={seatsHref}>
-                Continue to seats
-              </Link>
-            ) : null}
+            <div className="ticket-panel__pricing">
+              <span className="kicker">Admission</span>
+              {event.ticketTypes.length ? (
+                event.ticketTypes.map((ticket) => (
+                  <div className="ticket-row" key={ticket.id}>
+                    <span>
+                      <strong>{ticket.name}</strong>
+                      <small>{ticket.description ?? 'Admission ticket'}</small>
+                    </span>
+                    <strong>{formatMoney(ticket.priceMinor, ticket.currency)}</strong>
+                  </div>
+                ))
+              ) : (
+                <p className="empty-state">Tickets are not on sale yet.</p>
+              )}
+            </div>
           </Card>
         </div>
       </Container>

@@ -4,16 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Field } from '@eventory/ui';
+import type { AuthUser } from '@eventory/contracts';
 import { apiRequest, isApiError } from '../lib/api';
+import { destinationAfterAuth } from '../lib/auth-navigation';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
   nextPath?: string;
-}
-
-function safeNextPath(nextPath: string | undefined): string {
-  if (nextPath?.startsWith('/') && !nextPath.startsWith('//')) return nextPath;
-  return '/organizer';
 }
 
 export function AuthForm({ mode, nextPath }: AuthFormProps): React.JSX.Element {
@@ -30,11 +27,11 @@ export function AuthForm({ mode, nextPath }: AuthFormProps): React.JSX.Element {
     setError('');
     setIsSubmitting(true);
     try {
-      await apiRequest(`/auth/${mode}`, {
+      const response = await apiRequest<{ user: AuthUser }>(`/auth/${mode}`, {
         method: 'POST',
         body: JSON.stringify({ email, password, ...(isRegister ? { displayName } : {}) }),
       });
-      router.push(safeNextPath(nextPath));
+      router.push(destinationAfterAuth(nextPath, response.user.role));
       router.refresh();
     } catch (requestError) {
       setError(
