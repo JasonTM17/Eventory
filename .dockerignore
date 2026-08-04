@@ -2,6 +2,7 @@
 .github
 .claude
 .codex
+.commandcode
 .env
 .env.*
 node_modules
