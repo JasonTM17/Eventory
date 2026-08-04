@@ -21,7 +21,7 @@ images, and operational runbooks are maintained alongside the code.
 
 ## Product preview
 
-These artifacts were captured from a seeded, isolated local Compose stack and
+These artifacts were captured from a seeded local application stack and
 show the public discovery, seat-selection, checkout, and ticket-wallet flows.
 Payment and email delivery are deterministic local integrations; this
 repository does not claim a public demo or a production payment-provider
