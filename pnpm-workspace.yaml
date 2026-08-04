@@ -11,4 +11,5 @@ allowBuilds:
 overrides:
   sharp: 0.35.3
   postcss: 8.5.25
+  fast-uri: 3.1.5
   '@nestjs/swagger>js-yaml': 5.2.3
