@@ -227,6 +227,7 @@ export class EventsService {
     const safePage = this.normalizePage(page, 1);
     const safePageSize = this.normalizePage(pageSize, 20, 100);
     const where: Prisma.EventWhereInput = {
+      endAt: { gte: new Date() },
       status: {
         in: [
           EventStatus.PUBLISHED,

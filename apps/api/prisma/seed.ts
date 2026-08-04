@@ -70,23 +70,27 @@ async function main(): Promise<void> {
     create: { venueId: eventVenue.id, name: 'Main Floor', sortOrder: 0 },
   });
 
-  const seats = [];
-  for (let number = 1; number <= 12; number += 1) {
-    const seat = await prisma.seat.upsert({
-      where: {
-        sectionId_rowLabel_seatNumber: { sectionId: section.id, rowLabel: 'A', seatNumber: number },
-      },
-      update: { venueId: eventVenue.id, code: `A-${number}` },
-      create: {
-        venueId: eventVenue.id,
-        sectionId: section.id,
-        rowLabel: 'A',
-        seatNumber: number,
-        code: `A-${number}`,
-      },
-    });
-    seats.push(seat);
-  }
+  const cinemaRows = Array.from({ length: 10 }, (_, index) => String.fromCharCode(65 + index));
+  const seatCoordinates = cinemaRows.flatMap((rowLabel) =>
+    Array.from({ length: 14 }, (_, index) => ({ rowLabel, seatNumber: index + 1 })),
+  );
+  const seats = await Promise.all(
+    seatCoordinates.map(({ rowLabel, seatNumber }) =>
+      prisma.seat.upsert({
+        where: {
+          sectionId_rowLabel_seatNumber: { sectionId: section.id, rowLabel, seatNumber },
+        },
+        update: { venueId: eventVenue.id, code: `${rowLabel}-${seatNumber}` },
+        create: {
+          venueId: eventVenue.id,
+          sectionId: section.id,
+          rowLabel,
+          seatNumber,
+          code: `${rowLabel}-${seatNumber}`,
+        },
+      }),
+    ),
+  );
 
   const startAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1_000);
   const endAt = new Date(startAt.getTime() + 3 * 60 * 60 * 1_000);
@@ -164,7 +168,7 @@ async function main(): Promise<void> {
     seats.map((seat) =>
       prisma.seatAllocation.upsert({
         where: { eventSessionId_seatId: { eventSessionId: session.id, seatId: seat.id } },
-        update: { ticketTypeId: ticketType.id, status: SeatAllocationStatus.AVAILABLE },
+        update: { ticketTypeId: ticketType.id },
         create: {
           eventSessionId: session.id,
           seatId: seat.id,
